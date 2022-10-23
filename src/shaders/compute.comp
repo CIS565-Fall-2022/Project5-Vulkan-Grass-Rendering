@@ -8,11 +8,12 @@ layout(set = 0, binding = 0) uniform CameraBufferObject {
     mat4 view;
     mat4 proj;
 } camera;
-
 layout(set = 1, binding = 0) uniform Time {
     float deltaTime;
     float totalTime;
-};
+} time;
+
+layout(set = 2, binding = 0) uniform sampler2D noiseSampler;
 
 struct Blade {
     vec4 v0;
@@ -28,18 +29,54 @@ struct Blade {
 
 // The project is using vkCmdDrawIndirect to use a buffer as the arguments for a draw call
 // This is sort of an advanced feature so we've showed you what this buffer should look like
-//
-// layout(set = ???, binding = ???) buffer NumBlades {
-// 	  uint vertexCount;   // Write the number of blades remaining here
-// 	  uint instanceCount; // = 1
-// 	  uint firstVertex;   // = 0
-// 	  uint firstInstance; // = 0
-// } numBlades;
+
+layout(set = 3, binding = 0) buffer Blades {
+    Blade data[];
+} blades;
+
+layout(set = 3, binding = 1) buffer CulledBlades {
+    Blade data[];
+} culledBlades;
+
+layout(set = 3, binding = 2) buffer NumBlades {
+ 	uint vertexCount;   // Write the number of blades remaining here
+ 	uint instanceCount; // = 1
+ 	uint firstVertex;   // = 0
+ 	uint firstInstance; // = 0
+} numBlades;
 
 bool inBounds(float value, float bounds) {
     return (value >= -bounds) && (value <= bounds);
 }
 
+
+#define TILING vec2(0.01, 0.01)
+#define OFFSET vec2(0.01, 0.01)
+#define WIND_STRENTH 50
+#define WIND_FREQ vec2(0.05, 0.05)
+
+// reference: https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
+float rand(float lo, float hi) {
+    float t = time.totalTime;
+    vec2 co = vec2(t, -t);
+    float r = fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+    return r * (hi - lo) + lo;
+}
+
+// reference https://roystan.net/articles/grass-shader/#:~:text=The%20shader%20will%20take%20an,and%20be%20affected%20by%20wind.
+vec3 getWindDir(vec3 pos) {
+#define A 4.0f
+#define B 1.2f
+#define F(t) (sin(B*t))
+#define DF(t) (A*B*cos(B*t))
+    float t = time.totalTime;
+    vec2 uv = pos.xy * TILING + OFFSET + WIND_FREQ * t;
+    vec2 wdir = normalize(texture(noiseSampler, uv * 2 - 1).xy);
+    wdir.x *= -1;
+    return WIND_STRENTH * vec3(wdir, wdir.y);
+}
+
+#define D vec3(0,-9.81,0)
 void main() {
 	// Reset the number of blades to 0
 	if (gl_GlobalInvocationID.x == 0) {
@@ -48,6 +85,51 @@ void main() {
 	barrier(); // Wait till all threads reach this point
 
     // TODO: Apply forces on every blade and update the vertices in the buffer
+    
+    // fetch data according to how they were set up in Blades.cpp
+    Blade blade = blades.data[gl_GlobalInvocationID.x];
+    float theta = blade.v0.w;
+    float height = blade.v1.w;
+    float width = blade.v2.w;
+    float stiffness = blade.up.w;
+    vec3 up = vec3(blade.up);
+    vec3 v0 = vec3(blade.v0);
+    vec3 v1 = vec3(blade.v1);
+    vec3 v2 = vec3(blade.v2);
+
+    {
+        vec3 f = normalize(cross(vec3(-cos(theta), 0, sin(theta)), up));
+        // gravity (environmental + front)
+        vec3 g = D + 0.25f * abs(D) * f;
+        // recovery
+        vec3 r = ((v0 + height * up) - v2) * stiffness;
+        // wind
+        vec3 w = getWindDir(v0);
+        float fd = 1 - abs(dot(normalize(w), normalize(v2 - v0)));
+        float fr = dot((v2 - v0), up) / height;
+        w = w * fr * fd;
+
+        v2 += (g + r + w) * time.deltaTime;
+    }
+    
+    // Jahrmann 2017 5.2
+    // validate positions
+    {
+        v2 = v2 - up * min(up * (v2 - v1), 0);
+        float lproj = length(v2 - v0 - up * dot((v2 - v0), up));
+        v1 = v0 + height * up * max(1.f - lproj / height, 0.05f * max(lproj / height, 1.f));
+
+        // length validation
+        float l = (length(v0-v2) + 2 * (length(v0-v1) + length(v1-v2))) / 3;
+        float r = height / l;
+        vec3 v1c = v0 + r * (v1 - v0);
+        v2 = v1c + r * (v2 - v1);
+        v1 = v1c;
+    }
+
+    blade.v1 = vec4(v1, height);
+    blade.v2 = vec4(v2, width);
+    blades.data[gl_GlobalInvocationID.x] = blade;
 
 	// TODO: Cull blades that are too far away or not in the camera frustum and write them
 	// to the culled blades buffer

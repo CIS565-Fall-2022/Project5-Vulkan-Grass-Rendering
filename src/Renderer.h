@@ -4,6 +4,29 @@
 #include "SwapChain.h"
 #include "Scene.h"
 #include "Camera.h"
+#include <functional>
+
+struct NoLeak {
+    std::vector<std::function<void()>> jobs;
+    ~NoLeak() {
+        while (!jobs.empty()) {
+            jobs.back()();
+            jobs.pop_back();
+        }
+    }
+
+    template<typename T>
+    void push(T func) {
+        jobs.emplace_back(func);
+    }
+    template<typename T, typename... Ts>
+    void push(T func, Ts... funcs) {
+        push(func); push(funcs...);
+    }
+private:
+    template<typename T>
+    void push() {}
+};
 
 class Renderer {
 public:
@@ -19,6 +42,7 @@ public:
     void CreateModelDescriptorSetLayout();
     void CreateTimeDescriptorSetLayout();
     void CreateComputeDescriptorSetLayout();
+    void CreateComputeNoiseDescriptorSetLayout();
 
     void CreateDescriptorPool();
 
@@ -27,6 +51,7 @@ public:
     void CreateGrassDescriptorSets();
     void CreateTimeDescriptorSet();
     void CreateComputeDescriptorSets();
+    void CreateComputeNoiseTexDescriptorSet();
 
     void CreateGraphicsPipeline();
     void CreateGrassPipeline();
@@ -48,6 +73,8 @@ private:
     Scene* scene;
     Camera* camera;
 
+    NoLeak noLeak;
+
     VkCommandPool graphicsCommandPool;
     VkCommandPool computeCommandPool;
 
@@ -55,12 +82,18 @@ private:
 
     VkDescriptorSetLayout cameraDescriptorSetLayout;
     VkDescriptorSetLayout modelDescriptorSetLayout;
+    VkDescriptorSetLayout bladeDescriptorSetLayout;
+    VkDescriptorSetLayout computeDescriptorSetLayout;
     VkDescriptorSetLayout timeDescriptorSetLayout;
+    VkDescriptorSetLayout computeNoiseTexSetLayout;
     
     VkDescriptorPool descriptorPool;
 
     VkDescriptorSet cameraDescriptorSet;
     std::vector<VkDescriptorSet> modelDescriptorSets;
+    std::vector<VkDescriptorSet> bladeDescriptorSets;
+    std::vector<VkDescriptorSet> computeDescriptorSets;
+    VkDescriptorSet computeNoiseTexDescriptorSet;
     VkDescriptorSet timeDescriptorSet;
 
     VkPipelineLayout graphicsPipelineLayout;
