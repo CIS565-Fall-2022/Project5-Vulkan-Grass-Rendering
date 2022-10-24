@@ -2,11 +2,21 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 #define WORKGROUP_SIZE 32
+
+#define ORIENTATION_CULL
+#define ORIENTATION_CULL_THRES 0.9
+#define FRUSTUM_CULL
+#define FRUSTUM_CULL_TOLERANCE 0.1
+#define DISTANCE_CULL
+#define DISTANCE_CULL_LEVELS 10
+#define DISTANCE_CULL_MAX_DIST 20
+
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
 layout(set = 0, binding = 0) uniform CameraBufferObject {
     mat4 view;
     mat4 proj;
+    vec3 eye;
 } camera;
 layout(set = 1, binding = 0) uniform Time {
     float deltaTime;
@@ -45,15 +55,16 @@ layout(set = 3, binding = 2) buffer NumBlades {
  	uint firstInstance; // = 0
 } numBlades;
 
-bool inBounds(float value, float bounds) {
-    return (value >= -bounds) && (value <= bounds);
+bool inBounds(vec3 value, float bounds) {
+    return (value.x >= -bounds) && (value.x <= bounds) 
+    && (value.y >= -bounds) && (value.y <= bounds)
+    && (value.z >= -bounds) && (value.z <= bounds);
 }
 
 
 #define TILING vec2(0.01, 0.01)
-#define OFFSET vec2(0.01, 0.01)
+#define OFFSET vec2(0.1, 0.1)
 #define WIND_STRENTH 50
-#define WIND_FREQ vec2(0.05, 0.05)
 
 // reference: https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
 float rand(float lo, float hi) {
@@ -70,17 +81,17 @@ vec3 getWindDir(vec3 pos) {
 #define F(t) (sin(B*t))
 #define DF(t) (A*B*cos(B*t))
     float t = time.totalTime;
-    vec2 uv = pos.xy * TILING + OFFSET + WIND_FREQ * t;
-    vec2 wdir = normalize(texture(noiseSampler, uv * 2 - 1).xy);
+    vec2 uv = pos.xy * TILING + OFFSET * t;
+    vec3 wdir = normalize(texture(noiseSampler, uv * 2 - 1).xyz);
     wdir.x *= -1;
-    return WIND_STRENTH * vec3(wdir, wdir.y);
+    return rand(WIND_STRENTH * 0.7f, WIND_STRENTH) * wdir;
 }
 
 #define D vec3(0,-9.81,0)
 void main() {
 	// Reset the number of blades to 0
 	if (gl_GlobalInvocationID.x == 0) {
-		// numBlades.vertexCount = 0;
+		numBlades.vertexCount = 0;
 	}
 	barrier(); // Wait till all threads reach this point
 
@@ -97,7 +108,7 @@ void main() {
     vec3 v1 = vec3(blade.v1);
     vec3 v2 = vec3(blade.v2);
 
-    {
+    {   
         vec3 f = normalize(cross(vec3(-cos(theta), 0, sin(theta)), up));
         // gravity (environmental + front)
         vec3 g = D + 0.25f * abs(D) * f;
@@ -135,4 +146,39 @@ void main() {
 	// to the culled blades buffer
 	// Note: to do this, you will need to use an atomic operation to read and update numBlades.vertexCount
 	// You want to write the visible blades to the buffer without write conflicts between threads
+    {
+        // orientation test
+#ifdef ORIENTATION_CULL
+        vec3 view_width = normalize(vec3(camera.view * vec4(-cos(theta), 0, sin(theta), 0.f)));
+        if(abs(view_width.z) > ORIENTATION_CULL_THRES) {
+            return;
+        }
+#endif
+
+#ifdef FRUSTUM_CULL
+        mat4x4 VP = camera.proj * camera.view;
+        vec4 clip_v0 = VP * vec4(v0, 1.f);
+        clip_v0 /= clip_v0.w;
+
+        vec4 clip_v2 = VP * vec4(v2, 1.f);
+        clip_v2 /= clip_v2.w;
+        
+        vec4 clip_m = VP * vec4(0.25 * v0 + 0.5 * v1 + 0.25 * v2, 1.f);
+        clip_m /= clip_m.w;
+
+        float thres = 1.0f + FRUSTUM_CULL_TOLERANCE;
+        if(!inBounds(clip_v0.xyz, thres) && !inBounds(clip_v2.xyz, thres) && !inBounds(clip_m.xyz, thres)) {
+            return;
+        }
+#endif
+
+#ifdef DISTANCE_CULL
+        vec3 c = camera.eye;
+        float dproj = length(v0 - c - up * dot(v0 - c, up));
+        if(gl_GlobalInvocationID.x % DISTANCE_CULL_LEVELS > DISTANCE_CULL_LEVELS * floor(1.f - dproj / DISTANCE_CULL_MAX_DIST)) {
+            return;
+        }
+#endif
+    }
+    culledBlades.data[atomicAdd(numBlades.vertexCount, 1)] = blade;
 }

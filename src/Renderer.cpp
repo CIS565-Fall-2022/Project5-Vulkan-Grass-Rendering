@@ -6,6 +6,7 @@
 #include "Camera.h"
 #include "Image.h"
 #include <iostream>
+
 static constexpr unsigned int WORKGROUP_SIZE = 32;
 
 Renderer::Renderer(Device* device, SwapChain* swapChain, Scene* scene, Camera* camera)
@@ -13,10 +14,11 @@ Renderer::Renderer(Device* device, SwapChain* swapChain, Scene* scene, Camera* c
     logicalDevice(device->GetVkDevice()),
     swapChain(swapChain),
     scene(scene),
-    camera(camera) {
+    camera(camera),
+    profileReady(false) {
 
     CreateCommandPools();
-    CreateRenderPass();
+	CreateRenderPass();
 
     CreateCameraDescriptorSetLayout();
     CreateModelDescriptorSetLayout();
@@ -37,6 +39,7 @@ Renderer::Renderer(Device* device, SwapChain* swapChain, Scene* scene, Camera* c
     CreateGrassPipeline();
     CreateComputePipeline();
 
+    InitProfiling();
     RecordCommandBuffers();
     RecordComputeCommandBuffer();
 }
@@ -46,7 +49,7 @@ void Renderer::CreateCommandPools() {
     graphicsPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     graphicsPoolInfo.queueFamilyIndex = device->GetInstance()->GetQueueFamilyIndices()[QueueFlags::Graphics];
     graphicsPoolInfo.flags = 0;
-
+    
     if (vkCreateCommandPool(logicalDevice, &graphicsPoolInfo, nullptr, &graphicsCommandPool) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create command pool");
     }
@@ -59,6 +62,8 @@ void Renderer::CreateCommandPools() {
     if (vkCreateCommandPool(logicalDevice, &computePoolInfo, nullptr, &computeCommandPool) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create command pool");
     }
+
+    
 }
 
 void Renderer::CreateRenderPass() {
@@ -127,6 +132,54 @@ void Renderer::CreateRenderPass() {
         throw std::runtime_error("Failed to create render pass");
     }
 }
+
+void Renderer::InitProfiling() {
+    VkPhysicalDeviceProperties properties = device->GetInstance()->GetPhysicalDeviceProperties();
+    if(!properties.limits.timestampComputeAndGraphics) {
+        std::cout << "WARNING: timestamp not supported on GPU model\n No Data will be generated.\n";
+        profileReady = false;
+        return;
+    }
+
+	VkQueryPoolCreateInfo queryPoolCreateInfo{};
+	queryPoolCreateInfo.sType      = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+	queryPoolCreateInfo.queryType  = VK_QUERY_TYPE_TIMESTAMP;
+	queryPoolCreateInfo.queryCount = 2 * swapChain->GetCount();
+	queryPoolCreateInfo.flags      = 0;
+
+    VkResult res;
+	if((res = vkCreateQueryPool(logicalDevice, &queryPoolCreateInfo, nullptr, &queryPool)) != VK_SUCCESS) {
+        std::cerr << res << std::endl;
+		throw std::runtime_error("failed to create query pool for profiling!");
+	}
+    profileReady = true;
+}
+
+void Renderer::BeginProfiling(size_t cmdBufferIdx) const {
+    if (!profileReady) return;
+    vkCmdResetQueryPool(commandBuffers[cmdBufferIdx], queryPool, 2 * cmdBufferIdx, 2);
+    vkCmdWriteTimestamp(commandBuffers[cmdBufferIdx], VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, static_cast<uint32_t>(cmdBufferIdx * 2));
+}
+
+void Renderer::EndProfiling(size_t cmdBufferIdx) const {
+    if (!profileReady) return;
+    vkCmdWriteTimestamp(commandBuffers[cmdBufferIdx], VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, queryPool, static_cast<uint32_t>(cmdBufferIdx * 2 + 1));
+}
+
+void Renderer::GetProfilingResults() {
+    if (!profileReady) return;
+    float const period = device->GetInstance()->GetPhysicalDeviceProperties().limits.timestampPeriod;
+    for (uint32_t i = 0; i < swapChain->GetCount(); ++i) {
+        uint64_t buffers[2];
+        VkResult const res = vkGetQueryPoolResults(logicalDevice, queryPool,
+            2 * i, 2, sizeof(uint64_t) * 2, buffers, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT);
+        if (res == VK_SUCCESS) {
+            float const time = static_cast<float>(buffers[1] - buffers[0]) * period;
+            profileStats.Add(static_cast<double>(time) * 1e-6);
+        }
+    }
+}
+
 
 void Renderer::CreateCameraDescriptorSetLayout() {
     // Describe the binding of the descriptor set layout
@@ -296,7 +349,7 @@ void Renderer::CreateDescriptorPool() {
 }
 
 void Renderer::CreateCameraDescriptorSet() {
-    // Describe the desciptor set
+    // Describe the descriptor set
     VkDescriptorSetLayout layouts[] = { cameraDescriptorSetLayout };
     VkDescriptorSetAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -612,7 +665,7 @@ void Renderer::CreateComputeNoiseTexDescriptorSet() {
 
     vkUpdateDescriptorSets(logicalDevice, 1, &descWrite, 0, nullptr);
 
-    noLeak.push(
+    noLeak.Push(
         [transferCommandPool, this]() {
             vkDestroyCommandPool(device->GetVkDevice(), transferCommandPool, nullptr);
         }, 
@@ -1221,6 +1274,8 @@ void Renderer::RecordCommandBuffers() {
         // Bind the camera descriptor set. This is set 0 in all pipelines so it will be inherited
         vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 0, 1, &cameraDescriptorSet, 0, nullptr);
 
+
+    	BeginProfiling(i);
         vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         // Bind the graphics pipeline
@@ -1246,7 +1301,7 @@ void Renderer::RecordCommandBuffers() {
         vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, grassPipeline);
 
         for (uint32_t j = 0; j < scene->GetBlades().size(); ++j) {
-            VkBuffer vertexBuffers[] = { scene->GetBlades()[j]->GetBladesBuffer() };
+            VkBuffer vertexBuffers[] = { scene->GetBlades()[j]->GetCulledBladesBuffer() };
             VkDeviceSize offsets[] = { 0 };
             // TODO: Uncomment this when the buffers are populated
             vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
@@ -1262,6 +1317,7 @@ void Renderer::RecordCommandBuffers() {
 
         // End render pass
         vkCmdEndRenderPass(commandBuffers[i]);
+        EndProfiling(i);
 
         // ~ End recording ~
         if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
@@ -1311,6 +1367,8 @@ void Renderer::Frame() {
     if (!swapChain->Present()) {
         RecreateFrameResources();
     }
+
+    GetProfilingResults();
 }
 
 Renderer::~Renderer() {

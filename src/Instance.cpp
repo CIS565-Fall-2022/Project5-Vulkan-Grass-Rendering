@@ -88,6 +88,10 @@ VkPhysicalDevice Instance::GetPhysicalDevice() {
     return physicalDevice;
 }
 
+const VkPhysicalDeviceProperties& Instance::GetPhysicalDeviceProperties() const {
+    return physicalDeviceProperties;
+}
+
 const VkSurfaceCapabilitiesKHR& Instance::GetSurfaceCapabilities() const {
     return surfaceCapabilities;
 }
@@ -297,6 +301,7 @@ void Instance::PickPhysicalDevice(std::vector<const char*> deviceExtensions, Que
     }
 
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &deviceMemoryProperties);
+    vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
 }
 
 Device* Instance::CreateDevice(QueueFlagBits requiredQueues, VkPhysicalDeviceFeatures deviceFeatures) {
@@ -343,6 +348,11 @@ Device* Instance::CreateDevice(QueueFlagBits requiredQueues, VkPhysicalDeviceFea
     } else {
         createInfo.enabledLayerCount = 0;
     }
+
+    VkPhysicalDeviceHostQueryResetFeatures resetFeatures{};
+    resetFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES;
+    resetFeatures.hostQueryReset = VK_TRUE;
+    createInfo.pNext = &resetFeatures;
 
     VkDevice vkDevice;
     // Create logical device

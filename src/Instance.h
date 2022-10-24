@@ -16,6 +16,7 @@ public:
 
     VkInstance GetVkInstance();
     VkPhysicalDevice GetPhysicalDevice();
+    const VkPhysicalDeviceProperties& GetPhysicalDeviceProperties() const;
     const QueueFamilyIndices& GetQueueFamilyIndices() const;
     const VkSurfaceCapabilitiesKHR& GetSurfaceCapabilities() const;
     const std::vector<VkSurfaceFormatKHR>& GetSurfaceFormats() const;
@@ -34,6 +35,7 @@ private:
 
     void initDebugReport();
 
+    VkPhysicalDeviceProperties physicalDeviceProperties;
     VkInstance instance;
     VkDebugReportCallbackEXT debugReportCallback;
     std::vector<const char*> deviceExtensions;
