@@ -1,4 +1,7 @@
 #include <vulkan/vulkan.h>
+#include <sstream>
+#include <string>
+
 #include "Instance.h"
 #include "Window.h"
 #include "Renderer.h"
@@ -144,7 +147,14 @@ int main() {
     glfwSetCursorPosCallback(GetGLFWWindow(), mouseMoveCallback);
 
     while (!ShouldQuit()) {
+        std::stringstream ss;
+        auto const& stats = renderer->GetProfilingStats();
+        ss << applicationName << " " << "Frame Time: " << stats.Cur() << " ms Ave: " << stats.Ave() << " ms";
+        std::string str = ss.str();
+
         glfwPollEvents();
+        glfwSetWindowTitle(GetGLFWWindow(), str.c_str());
+
         scene->UpdateTime();
         renderer->Frame();
     }

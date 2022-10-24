@@ -1,5 +1,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#include <iostream>
 
 #include "Image.h"
 #include "Device.h"
@@ -200,6 +201,7 @@ void Image::FromFile(Device* device, VkCommandPool commandPool, const char* path
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 
     if (!pixels) {
+        std::cerr << stbi_failure_reason() << std::endl;
         throw std::runtime_error("Failed to load texture image");
     }
 
