@@ -20,7 +20,9 @@
 
 ### Noise Texture for Wind Simulation
 - A noise texture is used to introduce the randomness of the wind forces on the grass.
+
 ![](./img/noise.png)
+
 - The RGB channels of the texture are sampled to be used as the wind direction vectors in world space.
 - For each grass, its world position is used as the UV coordinate to sample the noise texture and determine the direction of the wind acting on it. This creates a sense of uniformity: grass in close proximity to each other tend to be affected by similar wind directions.
 - Specifically, `uv = world_pos * tiling + offset * total_time`
@@ -65,19 +67,7 @@
 - Test Specification
     - Tested on: Windows 10, i7-8700 @ 3.20 GHz 16GB, RTX 2070
     - Orientation Test Threshold is set to 0.9
-    $$ \left| \mathbf{dir}_c\cdot \mathbf{dir}_b \right|>0.9 \rightarrow culled\,\,
-        \begin{cases}
-        \mathbf{dir}_c: view\,\,direction\\
-        \mathbf{dir}_b: blade\,\,width\,\,direction\\
-        \end{cases}$$
     - For the distance test, the maximum distance is set to 20, the number of distance levels is set to 10.
-    $$id\,\,\mathrm{mod} \space n\,\,<\,\,\lfloor n\left( 1-\frac{d_{proj}}{d_{max}} \right) \rfloor \,\,\rightarrow \,\,culled\,\,\begin{cases}
-            id: blade\,\,id\\
-            n: num\,\,of\,\,dis\tan ce\,\,levels\\
-            d_{proj}: projected\,\,plane\,\,distance\,\,of\,\,camera\,\,to\,\,grass\\
-            d_{\max}: max\,\,distance\\
-        \end{cases}$$ 
-
 
 ### Test Scene 1
 - There are 2<sup>20</sup> grass blades in the scene
