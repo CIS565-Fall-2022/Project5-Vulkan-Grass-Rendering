@@ -46,7 +46,7 @@
 ### Frustum Culling
 - The frustum test culls all the grass lying outside the camera's view frustum
 - This can potentially improve performance when there are lots of grass outside the view frustum
-- To illustrate the effect of frustum culling, we can scale the width of the clip space by half during the frustum test.
+- To illustrate the effect of frustum culling, we can halve the width of the clip space during the frustum test.
 
 ![](./img/frustum.gif)
 
