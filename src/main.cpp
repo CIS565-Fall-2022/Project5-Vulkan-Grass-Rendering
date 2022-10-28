@@ -79,6 +79,7 @@ int main() {
         throw std::runtime_error("Failed to create window surface");
     }
 
+    // create physical device
     instance->PickPhysicalDevice({ VK_KHR_SWAPCHAIN_EXTENSION_NAME }, QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit, surface);
 
     VkPhysicalDeviceFeatures deviceFeatures = {};
@@ -86,12 +87,14 @@ int main() {
     deviceFeatures.fillModeNonSolid = VK_TRUE;
     deviceFeatures.samplerAnisotropy = VK_TRUE;
 
+    // create logical device
     device = instance->CreateDevice(QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit, deviceFeatures);
 
-    swapChain = device->CreateSwapChain(surface, 5);
+    swapChain = device->CreateSwapChain(surface, 5);    // ??? which 5 buffers
 
     camera = new Camera(device, 640.f / 480.f);
 
+    // create command pool
     VkCommandPoolCreateInfo transferPoolInfo = {};
     transferPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     transferPoolInfo.queueFamilyIndex = device->GetInstance()->GetQueueFamilyIndices()[QueueFlags::Transfer];
@@ -153,6 +156,7 @@ int main() {
 
     vkDestroyImage(device->GetVkDevice(), grassImage, nullptr);
     vkFreeMemory(device->GetVkDevice(), grassImageMemory, nullptr);
+    vkDestroySurfaceKHR(instance->GetVkInstance(), surface, nullptr);
 
     delete scene;
     delete plane;
