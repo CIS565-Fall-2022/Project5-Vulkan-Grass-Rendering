@@ -103,11 +103,6 @@ bool cullTest(Blade blade, uint id) {
     vec3 m = v0 * 0.25 + v1 * 0.5 + v2 * 0.25;
     float phi = blade.v0.w;
 
-    if (prepend(vec3(cos(phi), 0.0, sin(phi)), m)) {
-        return true;
-    }
-    return false;
-
     if (!inFrustum(v0) || !inFrustum(v2) || !inFrustum(m)) {
         return true;
     }
