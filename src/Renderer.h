@@ -19,6 +19,8 @@ public:
     void CreateModelDescriptorSetLayout();
     void CreateTimeDescriptorSetLayout();
     void CreateComputeDescriptorSetLayout();
+    
+    void CreateGrassDescriptorSetLayout();
 
     void CreateDescriptorPool();
 
@@ -56,6 +58,8 @@ private:
     VkDescriptorSetLayout cameraDescriptorSetLayout;
     VkDescriptorSetLayout modelDescriptorSetLayout;
     VkDescriptorSetLayout timeDescriptorSetLayout;
+    
+    VkDescriptorSetLayout grassDescriptorSetLayout;
 
     
     VkDescriptorPool descriptorPool;
