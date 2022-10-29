@@ -257,6 +257,7 @@ void Renderer::CreateCameraDescriptorSet() {
     descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorWrites[0].descriptorCount = 1;
     descriptorWrites[0].pBufferInfo = &cameraBufferInfo;
+    
     descriptorWrites[0].pImageInfo = nullptr;
     descriptorWrites[0].pTexelBufferView = nullptr;
 
@@ -320,6 +321,44 @@ void Renderer::CreateModelDescriptorSets() {
 void Renderer::CreateGrassDescriptorSets() {
     // TODO: Create Descriptor sets for the grass.
     // This should involve creating descriptor sets which point to the model matrix of each group of grass blades
+    grassDescriptorSets.resize(scene->GetBlades().size());
+
+    // Describe the desciptor set
+    VkDescriptorSetLayout layouts[] = { modelDescriptorSetLayout };
+    VkDescriptorSetAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = descriptorPool;
+    allocInfo.descriptorSetCount = static_cast<uint32_t>(grassDescriptorSets.size());
+    allocInfo.pSetLayouts = layouts;
+
+    // Allocate descriptor sets
+    if (vkAllocateDescriptorSets(logicalDevice, &allocInfo, grassDescriptorSets.data()) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to allocate descriptor set");
+    }
+
+    std::vector<VkWriteDescriptorSet> descriptorWrites(grassDescriptorSets.size());
+
+    for (uint32_t i = 0; i < scene->GetBlades().size(); ++i) 
+    {
+        VkDescriptorBufferInfo modelBufferInfo = {};
+        modelBufferInfo.buffer = scene->GetModels()[i]->GetModelBuffer();
+        modelBufferInfo.offset = 0;
+        modelBufferInfo.range = sizeof(ModelBufferObject);
+
+        descriptorWrites[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[i].dstSet = modelDescriptorSets[i];
+        descriptorWrites[i].dstBinding = 0;
+        descriptorWrites[i].dstArrayElement = 0;
+        descriptorWrites[i].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrites[i].descriptorCount = 1;
+        descriptorWrites[i].pBufferInfo = &modelBufferInfo;
+        descriptorWrites[i].pImageInfo = nullptr;
+        descriptorWrites[i].pTexelBufferView = nullptr;
+    }
+
+    // Update descriptor sets
+    vkUpdateDescriptorSets(logicalDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+
 }
 
 void Renderer::CreateTimeDescriptorSet() {
