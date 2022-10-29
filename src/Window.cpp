@@ -31,7 +31,7 @@ void InitializeWindow(int width, int height, const char* name) {
 }
 
 bool ShouldQuit() {
-    return !!glfwWindowShouldClose(window);
+    return glfwWindowShouldClose(window);
 }
 
 void DestroyWindow() {

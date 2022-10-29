@@ -53,15 +53,18 @@ private:
 
     VkRenderPass renderPass;
 
-    VkDescriptorSetLayout cameraDescriptorSetLayout;
-    VkDescriptorSetLayout modelDescriptorSetLayout;
-    VkDescriptorSetLayout timeDescriptorSetLayout;
+    VkDescriptorSetLayout cameraDescSetLayout;
+    VkDescriptorSetLayout modelDescSetLayout;
+    VkDescriptorSetLayout timeDescSetLayout;
+    VkDescriptorSetLayout computeDescSetLayout;
     
     VkDescriptorPool descriptorPool;
 
-    VkDescriptorSet cameraDescriptorSet;
-    std::vector<VkDescriptorSet> modelDescriptorSets;
-    VkDescriptorSet timeDescriptorSet;
+    VkDescriptorSet cameraDescSet;
+    std::vector<VkDescriptorSet> modelDescSets;
+    VkDescriptorSet timeDescSet;
+    std::vector<VkDescriptorSet> computeDescSets;
+    std::vector<VkDescriptorSet> grassDescSets;
 
     VkPipelineLayout graphicsPipelineLayout;
     VkPipelineLayout grassPipelineLayout;
