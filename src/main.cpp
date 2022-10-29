@@ -150,9 +150,11 @@ int main() {
     }
 
     vkDeviceWaitIdle(device->GetVkDevice());
-
     vkDestroyImage(device->GetVkDevice(), grassImage, nullptr);
     vkFreeMemory(device->GetVkDevice(), grassImageMemory, nullptr);
+
+    // from ed discusoin, suppress validation layer error on close main window
+    vkDestroySurfaceKHR(instance->GetVkInstance(), surface, nullptr);
 
     delete scene;
     delete plane;
