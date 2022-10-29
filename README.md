@@ -10,6 +10,7 @@ Vulkan Grass Rendering
   - i7-12700 @ 4.90GHz with 16GB RAM
   - RTX 3070 Ti Laptop 8GB
 
+https://user-images.githubusercontent.com/48054481/198855476-eedee8c3-43aa-49a5-99ea-5878accda913.mp4
 <div align="center">Autumn dusk...</div><br>
 
 ## Overview
@@ -65,6 +66,7 @@ vec3 wind(vec3 pos, float time) {
 
 which gives an effect like this:
 
+https://user-images.githubusercontent.com/48054481/198855509-6de20d44-807e-4893-8b55-4c81c4868c37.mp4
 
 
 ### Culling
@@ -72,18 +74,32 @@ which gives an effect like this:
 #### Distance
 
 
+https://user-images.githubusercontent.com/48054481/198855523-b0072d82-b305-4314-94b8-aea4f8d4fe1d.mp4
 
 #### Frustum
 
 Discard blades out of camera frustum. This is simple to achieve by projecting blade coordinate into clip space, then check if any of `x, y, z` is greater than `w`.
 
+
+https://user-images.githubusercontent.com/48054481/198855537-34a0470e-a59a-4ee0-9543-f4fa1a9205f7.mp4
+
+
+
 #### Orientation
+
+
+
+https://user-images.githubusercontent.com/48054481/198855542-d8a903d0-d533-4e68-8d53-1c2af1de9ca3.mp4
 
 
 
 ### Dynamic Tessellation Level
 
 In tessellation control shader, we can control the detail of tessellation. That is, how many triangles to be generated. When rendering, it is expected that the level of detail (LOD) of triangle mesh can dynamically adjust with respect to it's distance from camera: if a blade is far from camera, then it's not necessary to tessellate it with high LOD.
+
+
+https://user-images.githubusercontent.com/48054481/198855552-55a03fde-37f5-470b-b754-a28b1bc93692.mp4
+
 
 
 
