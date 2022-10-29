@@ -19,11 +19,14 @@ layout(location = 1) out vec4 teV1[];
 layout(location = 2) out vec4 teV2[];
 
 float getTessselLevelOfDetail(float d) {
-    if (d < 5.0) {
+    if (d < 1.0) {
+        return 20.0;
+    }
+    else if (d < 4.0) {
         return 10.0;
     }
-    else if (d < 20.0) {
-        return 5.0;
+    else if (d < 16.0) {
+        return 6.0;
     }
     else {
         return 3.0;

@@ -32,6 +32,11 @@ void Scene::UpdateTime() {
     time.totalTime += time.deltaTime;
 
     memcpy(mappedData, &time, sizeof(Time));
+
+    //accumTime = (accumTime * frameCount + time.deltaTime) / (1.f + frameCount);
+    accumTime = accumTime * .9f + time.deltaTime * .1f;
+    printf("\rTime: %f", accumTime * 1000.f);
+    frameCount += 1.f;
 }
 
 VkBuffer Scene::GetTimeBuffer() const {

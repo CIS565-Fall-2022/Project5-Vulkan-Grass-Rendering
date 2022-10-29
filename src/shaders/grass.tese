@@ -14,7 +14,8 @@ layout(location = 1) in vec4 teV1[];
 layout(location = 2) in vec4 teV2[];
 
 layout(location = 0) out vec3 norm;
-layout(location = 1) out float mixFactor;
+layout(location = 1) out vec3 pos;
+layout(location = 2) out float mixFactor;
 
 void main() {
     float u = gl_TessCoord.x;
@@ -36,10 +37,12 @@ void main() {
 
     vec3 c0 = c - width * t1;
     vec3 c1 = c + width * t1;
+    
+    float t = u + 0.5 * v - u * v;
 
     norm = normalize(cross(t0, t1));
+    pos = mix(c0, c1, t);
     mixFactor = 2 * v - v * v;
 
-    float t = u + 0.5 * v - u * v;
-    gl_Position = camera.proj * camera.view * vec4(mix(c0, c1, t), 1.0);
+    gl_Position = camera.proj * camera.view * vec4(pos, 1.0);
 }

@@ -26,7 +26,9 @@ private:
     std::vector<Model*> models;
     std::vector<Blades*> blades;
 
-high_resolution_clock::time_point startTime = high_resolution_clock::now();
+    high_resolution_clock::time_point startTime = high_resolution_clock::now();
+    float accumTime = 0.f;
+    float frameCount = 0.f;
 
 public:
     Scene() = delete;
