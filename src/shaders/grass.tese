@@ -24,10 +24,17 @@ void main() {
     float v = gl_TessCoord.y;
 
 	// TODO: Use u and v to parameterize along the grass blade and output positions for each vertex of the grass blade
+    out_uv = vec2(u,v);
+
     vec3 v0 = in_v0[0].xyz;
     vec3 v1 = in_v1[0].xyz;
     vec3 v2 = in_v2[0].xyz;
     vec3 up = in_up[0].xyz;
+
+    float theta = in_v0[0].w;
+    float w = in_v2[0].w;
+
+
    
    // De Casteljau
    vec3 a = mix(v0, v1, v);
@@ -35,9 +42,18 @@ void main() {
    vec3 c = mix(a, b, v);
 
 
-    out_uv = vec2(u,v);
-    //vec3 pos = 
-    //out_pos = vec3(camera.proj * camera.view * vec4(pos, 1.f));
+
+   vec3 t0 = normalize(b - a);
+   vec3 t1 = vec3(cos(theta), 0.0, -sin(theta));
+
+   out_norm = normalize(cross(t0, t1));
+
+   vec3 c0 = c - w * t1;
+   vec3 c1 = c  + w * t1; 
+
+   float t = u + 0.5 * v - u * v;
+   vec3 pos = mix(c0, c1, t);
+   out_pos = vec3(camera.proj * camera.view * vec4(pos, 1.f));
 
 
 }

@@ -15,6 +15,7 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
     // TODO: Compute fragment color
+    vec3 grass_color = vec3(86.0, 125.0, 70.0)/255.0;
 
-    outColor = vec4(1.0);
+    outColor = vec4(grass_color, 1.0);
 }
