@@ -487,7 +487,7 @@ void Renderer::CreateComputeDescriptorSets() {
         VkDescriptorBufferInfo numBladesBufferInfo = {};
         numBladesBufferInfo.buffer = scene->GetBlades()[i]->GetNumBladesBuffer();
         numBladesBufferInfo.offset = 0;
-        numBladesBufferInfo.range = sizeof(Blade) * NUM_BLADES; //sizeof(ModelBufferObject);  // ??? size
+        numBladesBufferInfo.range = sizeof(BladeDrawIndirect); ; // sizeof(Blade)* NUM_BLADES; //sizeof(ModelBufferObject);  // ??? size
 
         descriptorWrites[3 * i + 0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[3 * i + 0].dstSet = computeDescriptorSets[i];
@@ -501,7 +501,7 @@ void Renderer::CreateComputeDescriptorSets() {
 
         descriptorWrites[3 * i + 1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[3 * i + 1].dstSet = computeDescriptorSets[i];
-        descriptorWrites[3 * i + 1].dstBinding = 0;
+        descriptorWrites[3 * i + 1].dstBinding = 1;
         descriptorWrites[3 * i + 1].dstArrayElement = 0;
         descriptorWrites[3 * i + 1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         descriptorWrites[3 * i + 1].descriptorCount = 1;
@@ -511,7 +511,7 @@ void Renderer::CreateComputeDescriptorSets() {
 
         descriptorWrites[3 * i + 2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[3 * i + 2].dstSet = computeDescriptorSets[i];
-        descriptorWrites[3 * i + 2].dstBinding = 0;
+        descriptorWrites[3 * i + 2].dstBinding = 2;
         descriptorWrites[3 * i + 2].dstArrayElement = 0;
         descriptorWrites[3 * i + 2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         descriptorWrites[3 * i + 2].descriptorCount = 1;
@@ -1055,6 +1055,7 @@ void Renderer::RecordComputeCommandBuffer() {
         vkCmdBindDescriptorSets(computeCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipelineLayout, 2, 1, &computeDescriptorSets[j], 0, nullptr);
 
         // Dispatch
+        vkCmdDispatch(computeCommandBuffer, NUM_BLADES / 32, 1, 1);
     }
 
     // ~ End recording ~
@@ -1151,7 +1152,7 @@ void Renderer::RecordCommandBuffers() {
             vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
 
             // TODO: Bind the descriptor set for each grass blades model
-            vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineLayout, 1, 1, &grassDescriptorSets[j], 0, nullptr);
+            vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, grassPipelineLayout, 1, 1, &grassDescriptorSets[j], 0, nullptr);
 
             // Draw
             // TODO: Uncomment this when the buffers are populated
@@ -1230,6 +1231,7 @@ Renderer::~Renderer() {
     vkDestroyDescriptorSetLayout(logicalDevice, cameraDescriptorSetLayout, nullptr);
     vkDestroyDescriptorSetLayout(logicalDevice, modelDescriptorSetLayout, nullptr);
     vkDestroyDescriptorSetLayout(logicalDevice, timeDescriptorSetLayout, nullptr);
+    vkDestroyDescriptorSetLayout(logicalDevice, computeDescriptorSetLayout, nullptr);
 
     vkDestroyDescriptorPool(logicalDevice, descriptorPool, nullptr);
 
