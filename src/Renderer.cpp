@@ -734,7 +734,7 @@ void Renderer::CreateGrassPipeline() {
     // Input Assembly
     VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;  // ??? Where do we define patch size - whether we want the patch as a quad of 4 vertices or tri of 3 etc
     inputAssembly.primitiveRestartEnable = VK_FALSE;
 
     // Viewports and Scissors (rectangles that define in which regions pixels are stored)
