@@ -6,6 +6,7 @@ layout(quads, equal_spacing, ccw) in;
 layout(set = 0, binding = 0) uniform CameraBufferObject {
     mat4 view;
     mat4 proj;
+    vec3 pos;
 } camera;
 
 layout(location = 0) in vec4 teV0[];
@@ -24,7 +25,6 @@ void main() {
     vec3 v2 = teV2[0].xyz;
 
     float phi = teV0[0].w;
-    float height = teV1[0].w;
     float width = teV2[0].w;
 
     vec3 a = mix(v0, v1, v);
@@ -38,7 +38,7 @@ void main() {
     vec3 c1 = c + width * t1;
 
     norm = normalize(cross(t0, t1));
-    mixFactor = v;
+    mixFactor = 2 * v - v * v;
 
     float t = u + 0.5 * v - u * v;
     gl_Position = camera.proj * camera.view * vec4(mix(c0, c1, t), 1.0);

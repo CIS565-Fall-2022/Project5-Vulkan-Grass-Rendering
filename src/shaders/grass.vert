@@ -14,9 +14,11 @@ layout(location = 3) in vec4 inUp;
 layout(location = 0) out vec4 tcV0;
 layout(location = 1) out vec4 tcV1;
 layout(location = 2) out vec4 tcV2;
+layout(location = 3) out vec3 tcUp;
 
 void main() {
 	tcV0 = model * inV0;
 	tcV1 = model * inV1;
 	tcV2 = model * inV2;
+	tcUp = inUp.xyz;
 }
