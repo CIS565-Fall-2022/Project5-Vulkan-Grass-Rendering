@@ -36,6 +36,10 @@ Tested on: Windows 10, i7-10750H @ 2.60GHz, 16GB, GTX 3060 6GB
 
 <video src="https://user-images.githubusercontent.com/28486541/198902121-b51ba328-61d3-4d0b-9051-5fdc18f2d990.mp4"></video>
 
+### Orientation Culling
+
+<video src="https://user-images.githubusercontent.com/28486541/198902487-c843544c-c6a4-491b-846f-81b38c8552fa.mp4"></video>
+
 ### Density Control
 
 <video src="https://user-images.githubusercontent.com/28486541/198902203-bcd3692b-bdf7-4992-a363-fe4aae4e5edd.mp4"></video>
