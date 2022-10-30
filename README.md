@@ -22,6 +22,12 @@ This simulation is broken into three parts: Tessellation of the grass blade into
 
 ## Core Features Implemented
 
+### Grass Shape Tessellation
+
+### Environmental Forces
+
+### Culling
+
 ## Results
 
 ## Performance Analysis
