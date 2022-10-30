@@ -3,8 +3,13 @@
 
 #define WORKGROUP_SIZE 32
 
+#define CAM vec3(0.0f, 1.0f, 10.0f)
+
 #define SPHERIAL 0
 #define FORCE 1
+#define ORIENTATION 1
+#define VIEW_FRUSTUM 1
+#define DISTANCE 1
 
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
@@ -50,6 +55,18 @@ layout(set = 2, binding = 2) buffer CulledBlades {
 
 bool inBounds(float value, float bounds) {
     return (value >= -bounds) && (value <= bounds);
+}
+
+bool inBounds(vec3 value, float bounds) {
+    return (value.x >= -bounds) && (value.x <= bounds) &&
+    (value.y >= -bounds) && (value.y <= bounds) &&
+    (value.y >= -bounds) && (value.y <= bounds);
+}
+
+bool viewFrustum(mat4 VP, vec3 p){
+    vec4 p2 = VP * vec4(p, 1.f);
+    float h = p2.w + .1f;
+    return inBounds(p2.xyz, h);
 }
 
 void main() {
@@ -112,13 +129,26 @@ void main() {
     blade.v2.xyz = blade.v1.xyz + R * (v2 - v1);
     blades.data[gl_GlobalInvocationID.x] = blade;
 
-
-
-
-
 	// TODO: Cull blades that are too far away or not in the camera frustum and write them
 	// to the culled blades buffer
 	// Note: to do this, you will need to use an atomic operation to read and update numBlades.vertexCount
 	// You want to write the visible blades to the buffer without write conflicts between threads
+
+#if ORIENTATION
+    if (abs(dot(normalize(v0 - CAM), vec3(-cos(direction), 0.f, sin(direction)))) > 0.9f) return;
+#endif
+
+#if VIEW_FRUSTUM
+    mat4 VP = camera.proj * camera.view;
+    if (!viewFrustum(VP, v0) && !viewFrustum(VP, v2) && !viewFrustum(VP, 0.25f * v0 + 0.5f * v1 + 0.25f * v2)) return;
+#endif
+
+#if DISTANCE
+    float dproj = length(v0 - CAM - up * dot(v0 - CAM, up));
+    float dmax = 20;
+    uint n = 20;
+    if (gl_GlobalInvocationID.x % n > floor(n * (1 - dproj / dmax))) return;
+#endif
+
     culledBlades.data[atomicAdd(numBlades.vertexCount, 1)] = blade;
 }
