@@ -71,6 +71,8 @@ With only gravity active, all grass blades will collapse to the ground. Gravitat
 
 #### Wind
 
+![](img/wind.gif)
+
 ### 3. Culling
 
 ## Performance Analysis
