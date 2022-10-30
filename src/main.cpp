@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Scene.h"
 #include "Image.h"
+#include <iostream>
 
 Device* device;
 SwapChain* swapChain;
@@ -67,7 +68,7 @@ namespace {
 
 int main() {
     static constexpr char* applicationName = "Vulkan Grass Rendering";
-    InitializeWindow(640, 480, applicationName);
+    InitializeWindow(1280, 960, applicationName);
 
     unsigned int glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -90,7 +91,7 @@ int main() {
 
     swapChain = device->CreateSwapChain(surface, 5);
 
-    camera = new Camera(device, 640.f / 480.f);
+    camera = new Camera(device, 1280 / 960);
 
     VkCommandPoolCreateInfo transferPoolInfo = {};
     transferPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -143,7 +144,20 @@ int main() {
     glfwSetMouseButtonCallback(GetGLFWWindow(), mouseDownCallback);
     glfwSetCursorPosCallback(GetGLFWWindow(), mouseMoveCallback);
 
+
+    double previousTime = glfwGetTime();
+    int frameCount = 0;
+
     while (!ShouldQuit()) {
+        double currentTime = glfwGetTime();
+        frameCount++;
+        if (currentTime - previousTime >= 1.0)
+        {
+            std::cout << frameCount << std::endl;
+            frameCount = 0;
+            previousTime = currentTime;
+        }
+
         glfwPollEvents();
         scene->UpdateTime();
         renderer->Frame();
@@ -161,6 +175,9 @@ int main() {
     delete renderer;
     delete swapChain;
     delete device;
+
+    //based on Ed
+    vkDestroySurfaceKHR(instance->GetVkInstance(), surface, nullptr);
     delete instance;
     DestroyWindow();
     return 0;

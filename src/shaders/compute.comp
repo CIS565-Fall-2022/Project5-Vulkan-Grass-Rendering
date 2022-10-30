@@ -23,34 +23,157 @@ struct Blade {
 
 // TODO: Add bindings to:
 // 1. Store the input blades
+layout(set = 2, binding = 0) buffer InputBlades {
+    Blade in_blades[];
+} ;
 // 2. Write out the culled blades
+layout(set = 2, binding = 1) buffer CulledBlades {
+    Blade culled_blades[];
+} ;
 // 3. Write the total number of blades remaining
 
 // The project is using vkCmdDrawIndirect to use a buffer as the arguments for a draw call
 // This is sort of an advanced feature so we've showed you what this buffer should look like
 //
-// layout(set = ???, binding = ???) buffer NumBlades {
-// 	  uint vertexCount;   // Write the number of blades remaining here
-// 	  uint instanceCount; // = 1
-// 	  uint firstVertex;   // = 0
-// 	  uint firstInstance; // = 0
-// } numBlades;
+layout(set = 2, binding = 2) buffer NumBlades {
+ 	  uint vertexCount;   // Write the number of blades remaining here
+ 	  uint instanceCount; // = 1
+ 	  uint firstVertex;   // = 0
+ 	  uint firstInstance; // = 0
+} numBlades;
 
 bool inBounds(float value, float bounds) {
     return (value >= -bounds) && (value <= bounds);
 }
 
+//some helper functions
+bool pointInFrustum(vec4 point)
+{
+    float tolerance = 0.05f;
+    float h = point.w + tolerance;
+    return inBounds(point.x, h) && inBounds(point.y, h) && inBounds(point.z, h);
+}
+ 
+//some magic numbers...
+#define Dmax 30
+#define Low_Level 10
+#define GRAVITY vec4(0, -1, 0, 5)
+#define windFunc (vec3(-3.0, -5.0, 4.0) * sin(totalTime))
+
+//performance check
+#define GRAV 1
+#define RECO 1
+#define WIND 1
+
+#define ORIE_CULL 0
+#define VIEW_CULL 0
+#define DIST_CULL 0
+
 void main() {
 	// Reset the number of blades to 0
 	if (gl_GlobalInvocationID.x == 0) {
-		// numBlades.vertexCount = 0;
+		numBlades.vertexCount = 0;
 	}
 	barrier(); // Wait till all threads reach this point
 
     // TODO: Apply forces on every blade and update the vertices in the buffer
+    uint id = gl_GlobalInvocationID.x;
+    Blade b = in_blades[id];
+    vec3 v0 = b.v0.xyz;
+    vec3 v1 = b.v1.xyz;
+    vec3 v2 = b.v2.xyz;
+    vec3 up = b.up.xyz;
+
+    float direction = b.v0.w;
+    float height = b.v1.w;
+    float width = b.v2.w;
+    float stiffness = b.up.w;
+    vec3 orient = vec3(cos(direction), 0, sin(direction)); 
+
+    //Gravity
+    #if GRAV
+        vec3 gE = normalize(GRAVITY.xyz) * GRAVITY.w;
+        vec3 gF = 0.25f * length(gE) * normalize(cross(orient, up));
+        vec3 gravity = gE + gF;
+    #else
+        vec3 gravity = vec3(0,0,0);
+    #endif
+    //Recovery
+    #if RECO
+        vec3 iv2 = v0 + up * height;
+        vec3 recovery = (iv2 - v2) * stiffness;
+    #else
+        vec3 recovery = vec3(0,0,0);
+    #endif
+
+    //Wind
+    #if WIND
+        float Fd = 1 - abs(dot(normalize(windFunc), normalize(v2 - v0)));
+        float Fr = dot((v2 - v0), up) / height;
+        vec3 wind = windFunc * Fd * Fr;
+    #else
+        vec3 wind = vec3(0,0,0);
+    #endif
+
+    vec3 totalForce = gravity + recovery + wind;
+    v2 = v2 + totalForce * deltaTime; 
+
+    //state validation
+    v2 = v2 - up * min(dot(up, v2 - v0), 0); 
+    float Lproj = length(v2 - v0 - up * dot(v2 - v0, up));
+    v1 = v0 + height * up * max(1 - Lproj / height, 0.05 * max(Lproj/height, 1));
+    float L0 = length(v2 - v0);
+    float L1 = length(v2 - v1) + length(v1 - v0);
+    float L = (2 * L0 + (2 - 1) * L1) / (2 + 1);
+    float r = height / L;
+    v1 = v0 + r * (v1 - v0);
+    v2 = v1 + r * (v2 - v1);
+
+
+    in_blades[id].v1 = vec4(v1, b.v1.w);
+    in_blades[id].v2 = vec4(v2, b.v2.w);
 
 	// TODO: Cull blades that are too far away or not in the camera frustum and write them
 	// to the culled blades buffer
 	// Note: to do this, you will need to use an atomic operation to read and update numBlades.vertexCount
 	// You want to write the visible blades to the buffer without write conflicts between threads
+    // Reset the number of blades to 0
+    
+    //vec3 eye_pos = vec3(camera.view[0][3], camera.view[1][3],camera.view[2][3]);
+    vec3 eye_pos = inverse(camera.view)[3].xyz;
+    //Orientation culling
+    #if ORIE_CULL
+        vec3 Dirc = eye_pos - v0;
+        vec3 Dirb = orient;
+        if (abs(dot(normalize(Dirc), normalize(Dirb))) >= 0.9)
+           return;
+    #endif
+
+    //View-frustum culling
+    #if VIEW_CULL
+        vec3 m = (1/4) * v0 * (1/2) * v1 * (1/4) * v2;
+        mat4 vp = camera.proj * camera.view;
+    
+        vec4 projected_v0 = vp * vec4(v0, 1.0f);
+        //projected_v0 /= projected_v0.w;
+        vec4 projected_v2 = vp * vec4(v2, 1.0f);
+        //projected_v2 /= projected_v2.w;
+        vec4 projected_m = vp  * vec4(m , 1.0f);
+        //projected_m /= projected_m.w;
+        //If the test results in false for all three points, the blade is culled.
+        if(!pointInFrustum(projected_v0) ||
+           !pointInFrustum(projected_v2) ||
+           !pointInFrustum(projected_m))
+            return;
+    #endif
+
+    //Distance culling
+    #if DIST_CULL
+        float Dproj = length(v0 - eye_pos - up * dot((v0 - eye_pos), up));
+        uint n = Low_Level;
+        if (mod(id, n) >= (n * (1 - Dproj / Dmax)))
+            return;
+    #endif
+
+    culled_blades[atomicAdd(numBlades.vertexCount, 1)] = in_blades[id];
 }
