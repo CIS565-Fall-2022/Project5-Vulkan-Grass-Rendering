@@ -29,6 +29,14 @@ struct Blade {
 // The project is using vkCmdDrawIndirect to use a buffer as the arguments for a draw call
 // This is sort of an advanced feature so we've showed you what this buffer should look like
 //
+ layout(set = 2, binding = 0) buffer Blades {
+    Blade blades[];
+ } ;
+
+  layout(set = 2, binding = 1) buffer CulledBlades {
+   Blade culledBlades[];
+ } ;
+
  layout(set = 2, binding = 2) buffer NumBlades {
  	  uint vertexCount;   // Write the number of blades remaining here
  	  uint instanceCount; // = 1

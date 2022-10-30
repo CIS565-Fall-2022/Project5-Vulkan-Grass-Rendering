@@ -60,7 +60,7 @@ private:
     VkDescriptorSetLayout timeDescriptorSetLayout;
     
     VkDescriptorSetLayout grassDescriptorSetLayout;
-
+    VkDescriptorSetLayout computeDescriptorSetLayout;
     
     VkDescriptorPool descriptorPool;
 
