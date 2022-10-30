@@ -194,27 +194,30 @@ void main() {
     float orientation = dot(camToBladeVec, bitangent);
 
     if (orientation > 0.9) {
+        // do not render
         return;
     }
 
     // view frustum culling
     vec3 m = 0.25 * v0 + 0.5 * v1 + 0.25 * v2;
-    vec4 pprime = camera.view * camera.proj * vec4(v0, 1.0);
-    float h = pprime.w * 0.001;
-    bool v = (pprime.x <= h && pprime.x >= -h) && (pprime.y <= h && pprime.y >= -h);
+    vec4 pprime = camera.proj * camera.view * vec4(m, 1.0);
+    float h = pprime.w * 0.95;
+    bool v = inBounds(pprime.x, h) && inBounds(pprime.y, h);
 
-    if (v) {
+    if (!v) {
+    // do not render
         return;
     }
 
     // distance culling
     float projDist = length(camToBladeVec);
-    int maxDistLevel = 40; 
+    int maxDistLevel = 30; 
     int n = 5;
 
     float bladeCullFactor = floor(n * (1 - projDist / maxDistLevel));
 
     if (idx % n >= bladeCullFactor) {
+        // do not render
         return;
     }
 
