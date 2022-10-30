@@ -71,6 +71,29 @@ The distance culling operation removes blades based on the distance of the blade
 # Performance Analysis
 All tests below were performed with the camera situated above the plane, at an angle. `r = 10.0, theta = 0.f, phi = 0.0`.
 
+## Impact of Blades
+As expected, increasing the number of blades decreases the frame rate. This is because more blades needs to be computed, and more blades to send through the rendering pipeline. Adding more than 65536 blades causes us to not be able to see any of the blades anyways, so figures are only helpful in seeing the FPS hit. The graph below shows how the FPS decreases exponentially as number of blades is increased. From the graph, we can see that enable all forms of culling gives us a nearly 2.5x boost in most cases.
 
-*DO NOT* leave the README to the last minute! It is a crucial part of the
-project, and we will not be able to grade you without a good README.
+![NumBlades_FPS](img/NumBlade_FPS.png)
+
+## Optimization 
+
+From these paragraphes we can see that the distance culling has the most significant effect, and view_frustum culling has the minimum effect, and the orientation culling was in the middle.
+And what's more, the orientation culling and view_frustum culling FPS was very close to the original FPS. I guess doing culling process will also need computation, but after these culling method, only few of them was culled, so the effect was not that clear.
+
+But the distance culling will cut off a lot of blades, which bring the most significent performance increase.
+
+Separate graphs are used because increasing number of blades will cause large differences in FPS magnitude, which are hard to see on a single graph.
+
+![NumBlades_FPS](img/16384.png)
+
+![NumBlades_FPS](img/32768.png)
+
+![NumBlades_FPS](img/65536.png)
+
+![NumBlades_FPS](img/131072.png)
+
+# References
+* Getting camera eye from view matrix
+  * Invert to find camera space in terms of world space and take displacement in fourth column of homogeneous matrix
+  * https://www.3dgep.com/understanding-the-view-matrix/

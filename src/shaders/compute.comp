@@ -4,9 +4,9 @@
 #define WORKGROUP_SIZE 32
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
-#define OrientationCull 0
+#define OrientationCull 1
 #define ViewFrustumCull 1
-#define DistanceCull 0
+#define DistanceCull 1
 
 layout(set = 0, binding = 0) uniform CameraBufferObject {
     mat4 view;
