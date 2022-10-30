@@ -16,7 +16,6 @@ layout(set = 0, binding = 0) uniform CameraBufferObject {
 
     layout(location = 0) out vec3 out_norm;
     layout(location = 1) out vec3 out_pos;
-    layout(location = 2) out vec2 out_uv;
 
 
 void main() {
@@ -24,7 +23,6 @@ void main() {
     float v = gl_TessCoord.y;
 
 	// TODO: Use u and v to parameterize along the grass blade and output positions for each vertex of the grass blade
-    out_uv = vec2(u,v);
 
     vec3 v0 = in_v0[0].xyz;
     vec3 v1 = in_v1[0].xyz;
@@ -55,5 +53,6 @@ void main() {
    vec3 pos = mix(c0, c1, t);
    out_pos = vec3(camera.proj * camera.view * vec4(pos, 1.f));
 
+   gl_Position = camera.proj * camera.view * vec4(pos, 1.f);  // transform to clip space
 
 }
