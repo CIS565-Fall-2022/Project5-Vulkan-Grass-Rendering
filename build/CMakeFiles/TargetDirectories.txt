@@ -1,0 +1,12 @@
+D:/cggt first year/cis565/Project5/build/CMakeFiles/ALL_BUILD.dir
+D:/cggt first year/cis565/Project5/build/CMakeFiles/ZERO_CHECK.dir
+D:/cggt first year/cis565/Project5/build/external/GLFW/CMakeFiles/ALL_BUILD.dir
+D:/cggt first year/cis565/Project5/build/external/GLFW/src/CMakeFiles/glfw.dir
+D:/cggt first year/cis565/Project5/build/src/CMakeFiles/vulkan_grass_rendering.dir
+D:/cggt first year/cis565/Project5/build/src/CMakeFiles/compute.comp.spv.dir
+D:/cggt first year/cis565/Project5/build/src/CMakeFiles/graphics.frag.spv.dir
+D:/cggt first year/cis565/Project5/build/src/CMakeFiles/graphics.vert.spv.dir
+D:/cggt first year/cis565/Project5/build/src/CMakeFiles/grass.frag.spv.dir
+D:/cggt first year/cis565/Project5/build/src/CMakeFiles/grass.tesc.spv.dir
+D:/cggt first year/cis565/Project5/build/src/CMakeFiles/grass.tese.spv.dir
+D:/cggt first year/cis565/Project5/build/src/CMakeFiles/grass.vert.spv.dir
