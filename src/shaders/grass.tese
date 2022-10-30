@@ -8,10 +8,10 @@ layout(set = 0, binding = 0) uniform CameraBufferObject {
     mat4 proj;
 } camera;
 
-layout (location = 0) in vec4 v0in[];
-layout (location = 1) in vec4 v1in[];
-layout (location = 2) in vec4 v2in[];
-layout (location = 3) in vec4 rightin[];
+layout (location = 0) in vec3 v0in[];
+layout (location = 1) in vec3 v1in[];
+layout (location = 2) in vec3 v2in[];
+layout (location = 3) in vec3 rightin[];
 
 layout (location = 0) out float uout;
 layout (location = 1) out float vout;
@@ -32,10 +32,10 @@ void main() {
     uout = u;
     vout = v;
 
-    vec3 v2orig = v2in[0].xyz;
-    vec3 v0orig = v0in[0].xyz;
-    vec3 v1 = v1in[0].xyz;
-    vec3 right = rightin[0].xyz;
+    vec3 v2orig = v2in[0];
+    vec3 v0orig = v0in[0];
+    vec3 v1 = v1in[0];
+    vec3 right = rightin[0];
 
     float t = u  - 0.5;
     vec3 v0 = v0orig + right * t;

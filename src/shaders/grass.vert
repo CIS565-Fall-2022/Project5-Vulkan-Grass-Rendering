@@ -4,10 +4,6 @@
 
 #define INV_SQRT_THREE 0.577350269189625764509148780501957456
 
-layout(set = 1, binding = 0) uniform ModelBufferObject {
-    mat4 model;
-} model;
-
 vec3 getDifferentDir(vec3 dir) {
 	// Find a direction that is not the dir based of whether or not the
 	// dir's components are all equal to sqrt(1/3) or whether or not at
@@ -39,17 +35,17 @@ layout (location = 2) out vec3 v2out;
 layout (location = 3) out vec3 rightout;
 
 void main() {
-    vec4 v0tmp = model.model * vec4(v0in.xyz, 1.0);
-    vec4 v1tmp = model.model * vec4(v1in.xyz, 1.0);
-    vec4 v2tmp = model.model * vec4(v2in.xyz, 1.0);
-    v0tmp /= v0tmp.w;
-    v1tmp /= v1tmp.w;
-    v2tmp /= v2tmp.w;
-    v0out = v0tmp.xyz;
-    v1out = v1tmp.xyz;
-    v2out = v2tmp.xyz;
+    // vec4 v0tmp = model.model * vec4(v0in.xyz, 1.0);
+    // vec4 v1tmp = model.model * vec4(v1in.xyz, 1.0);
+    // vec4 v2tmp = model.model * vec4(v2in.xyz, 1.0);
+    // v0tmp /= v0tmp.w;
+    // v1tmp /= v1tmp.w;
+    // v2tmp /= v2tmp.w;
+    v0out = v0in.xyz;
+    v1out = v1in.xyz;
+    v2out = v2in.xyz;
 
-    vec3 up = normalize((model.model * vec4(upin.xyz, 1.0)).xyz);
+    vec3 up = upin.xyz;
     
     float theta = v0in.w;
 	vec3 T = getDifferentDir(up);

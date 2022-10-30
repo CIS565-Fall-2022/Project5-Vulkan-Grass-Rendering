@@ -40,13 +40,26 @@ vec3 getDifferentDir(vec3 dir) {
 }
 
 void main() {
+	vec3 camPos = vec3(camera.view[3][0], camera.view[3][1], camera.view[3][2]);
+    float z = length(v0in[gl_InvocationID].xyz - camPos);
+	int level;
+	if (z < 4.0)
+		level = 16;
+	else if (z < 8.0)
+		level = 12;
+	else if (z < 16.0)
+		level = 8;
+	else if (z < 32.0)
+		level = 4;
+	else
+		level = 2;
 
-    gl_TessLevelInner[0] = 5;
-    gl_TessLevelInner[1] = 5;
-    gl_TessLevelOuter[0] = 5;
-    gl_TessLevelOuter[1] = 5;
-    gl_TessLevelOuter[2] = 5;
-    gl_TessLevelOuter[3] = 5;
+    gl_TessLevelInner[0] = level;
+    gl_TessLevelInner[1] = level;
+    gl_TessLevelOuter[0] = level;
+    gl_TessLevelOuter[1] = level;
+    gl_TessLevelOuter[2] = level;
+    gl_TessLevelOuter[3] = level;
 
     // gl_InvocationID is 0 for all tesc actuallyx
     v0out[gl_InvocationID] = v0in[gl_InvocationID];

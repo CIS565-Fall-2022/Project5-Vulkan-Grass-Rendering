@@ -81,7 +81,7 @@ vec3 getDifferentDir(vec3 dir) {
 
 void main() {
     uint idx = gl_GlobalInvocationID.x;
-    if (idx > numBlades.vertexCount) return;
+    // if (idx > numBlades.vertexCount) return;
 	// Reset the number of blades to 0
 	if (idx == 0) {
 		numBlades.vertexCount = 0;
@@ -143,8 +143,27 @@ void main() {
 	// Note: to do this, you will need to use an atomic operation to read and update numBlades.vertexCount
 	// You want to write the visible blades to the buffer without write conflicts between threads
     blades[numBlades.firstVertex + idx] = blade;
+
+    vec4 ndc = camera.proj * camera.view * vec4(v0, 1);
+    ndc /= (ndc.w+1.0);
+    if (ndc.x > 1.0 || ndc.x < -1.0 || ndc.y > 1.0 || ndc.y < -1.0 || ndc.z > 1.0 || ndc.z < -1) return;
+
+    vec3 camPos = vec3(camera.view[3][0], camera.view[3][1], camera.view[3][2]);
+    if (abs(dot(fwd, normalize(v0-camPos))) > 0.9) return;
+
+    float z = length(v0 - camPos);
+	int level;
+	if (z < 8.0)
+		level = 1;
+	else if (z < 16.0)
+		level = 2;
+	else if (z < 32.0)
+		level = 3;
+	else if (z < 64.0)
+		level = 4;
+	else
+		level = 5;
+    if ((idx+1) % level != 0) return; 
     
-    
-    culledBlades[numBlades.firstVertex + idx] = blade;
-    atomicAdd(numBlades.vertexCount, 1);
+    culledBlades[numBlades.firstVertex + atomicAdd(numBlades.vertexCount, 1)] = blade;
 }
