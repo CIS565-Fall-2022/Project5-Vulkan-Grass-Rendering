@@ -47,6 +47,9 @@ Each of the above points are represented as `vec4s` where the element _w_ (fourt
 - `v2.w - blade width`: width of the base of the blade
 - `up.w - blade stiffness`: stiffness of the blade/resistance towards the environmental forces
 
+Here is the simulation without any forces:
+
+![](img/grass.png)
 
 ### 2. Environmental Forces
 
