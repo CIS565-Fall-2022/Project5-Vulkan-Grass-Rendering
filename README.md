@@ -17,6 +17,7 @@ This simulation is broken into three parts: Tessellation of the grass blade into
 - Gravity: Gravitational force from the ground
 - Wind: Force applied by wind and air
 - Result Validation (to clamp the recalculated blade shape's length and position)
+- **Note that the paper also specifies Collision force, but we don't take that into account here**
 
 ![](img/diGrass2.gif)
 
