@@ -31,6 +31,6 @@ void main() {
     float lightIntensity = diffuseTerm + ambientTerm;
 
     float heightLerp = (1 - verticality) * 0.3 + verticality * 0.8;
-    outColor = heightLerp * green; // vec4(vec3(green) * lightIntensity, green.w);
+    outColor = heightLerp * green; 
 
 }

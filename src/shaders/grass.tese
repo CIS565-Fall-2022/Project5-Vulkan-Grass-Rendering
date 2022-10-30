@@ -9,9 +9,9 @@ layout(set = 0, binding = 0) uniform CameraBufferObject {
 } camera;
 
 // TODO: Declare tessellation evaluation shader inputs and outputs
-layout(location = 0) in vec4 in_baryCoord0[];
-layout(location = 1) in vec4 in_baryCoord1[];
-layout(location = 2) in vec4 in_baryCoord2[];
+layout(location = 0) in vec4 in_v0[];
+layout(location = 1) in vec4 in_v1[];
+layout(location = 2) in vec4 in_v2[];
 layout(location = 3) in vec4 in_up[];
 
 layout(location = 0) out vec4 finalPos;
@@ -20,7 +20,7 @@ layout(location = 2) out float verticality;
 
 void main() {
     // Attempt to rotate using theta
-    float theta = in_baryCoord0[0].w;
+    float theta = in_v0[0].w;
 
 	// TODO: Use u and v to parameterize along the grass blade and output positions for each vertex of the grass blade
     float u = gl_TessCoord.x;
@@ -32,9 +32,9 @@ void main() {
     // How do we parametrize the damn blade itself?
 
     // The blade parametrization is in the grass paper I'm stupid
-    vec3 v0 = vec3(in_baryCoord0[0]);
-    vec3 v1 = vec3(in_baryCoord1[0]);
-    vec3 v2 = vec3(in_baryCoord2[0]);
+    vec3 v0 = vec3(in_v0[0]);
+    vec3 v1 = vec3(in_v1[0]);
+    vec3 v2 = vec3(in_v2[0]);
 
     // for now, set width of blade to a constant
     float width = 0.2f;
