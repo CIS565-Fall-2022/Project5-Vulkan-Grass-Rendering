@@ -202,21 +202,21 @@ void Renderer::CreateComputeDescriptorSetLayout() {
     // Describe the binding of the descriptor set layout
     VkDescriptorSetLayoutBinding bladeLayoutBinding = {};
     bladeLayoutBinding.binding = 0;
-    bladeLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    bladeLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
     bladeLayoutBinding.descriptorCount = 1;
     bladeLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
     bladeLayoutBinding.pImmutableSamplers = nullptr;
 
     VkDescriptorSetLayoutBinding culledBladeLayoutBinding = {};
     culledBladeLayoutBinding.binding = 1;
-    culledBladeLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    culledBladeLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
     culledBladeLayoutBinding.descriptorCount = 1;
     culledBladeLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
     culledBladeLayoutBinding.pImmutableSamplers = nullptr;
 
     VkDescriptorSetLayoutBinding numBladesLayoutBinding = {};
     numBladesLayoutBinding.binding = 2;
-    numBladesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    numBladesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
     numBladesLayoutBinding.descriptorCount = 1;
     numBladesLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
     numBladesLayoutBinding.pImmutableSamplers = nullptr;
@@ -243,7 +243,7 @@ void Renderer::CreateGrassDescriptorSetLayout()
     uboLayoutBinding.binding = 0;
     uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     uboLayoutBinding.descriptorCount = 1;
-    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     uboLayoutBinding.pImmutableSamplers = nullptr;
 
     std::vector<VkDescriptorSetLayoutBinding> bindings = { uboLayoutBinding };
