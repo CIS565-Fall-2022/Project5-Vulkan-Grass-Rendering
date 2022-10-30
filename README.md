@@ -53,7 +53,7 @@ Here is the simulation without any forces:
 
 ### 2. Environmental Forces
 
-
+There are three environmental forces that impact the grass blade:
 
 - Recovery: A force based on stiffness of a blade that counteracts external forces of gravity and wind
 - Gravity: Gravitational force from the ground
