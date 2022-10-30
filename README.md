@@ -25,6 +25,16 @@ The following diagram shows how the Vulkan pipeline has been used in this projec
 ![](img/vulkanGrassPipeline.png)
 
 
+
+### Grass Tessellation
+
+|Remarks|Result|
+|---|---|
+|Initially we start off with values of v0, v1, v2 as shown here | ![](img/grassBlade.png)|
+|Tessellation control shader sets outer and inner tessellation level to 10 for each side|![](img/quadLevels.png)|
+|Resultant tessellated grass, number of blades = 100|![](img/tessellation.gif)|
+|Resultant tessellated grass, number of blades = 1<<13|![](img/tessellation2.gif)|
+
 ### Compute pipeline
 
 In this project, we simulate forces on grass blades while they are still Bezier curves. This is done in a compute shader using the compute pipeline.
@@ -38,8 +48,9 @@ In this project, we simulate forces on grass blades while they are still Bezier 
 |Culling type|Result|
 |---|---|
 |**Orientation Culling** - If the front face direction of the blade is perpendicular to view vector, Our grass blade won't have visible width. So we remove these blades. *Number of blades - 10, orientation threshold 0.95*|![](img/orientationCulling.gif)|
-|**Distance Culling** - If the blades are too far away from the camera, we may get artifacts if the visible width is negligible (smaller than size of pixel). So we remove these blades. *Number of blades 1 << 13, max distance 45, number of buckets 5*  |![](img/distanceCulling.gif)|
+|**Distance Culling** - If the blades are too far away from the camera, we may get artifacts if the visible width is negligible (smaller than size of pixel). So we remove these blades. *Number of blades 1 << 13, max distance 20, number of buckets 5*  |![](img/distanceCulling.gif)|
 |**View-frustum culling** - If our blades are not within the camera view, we remove them. For the result shown here, we have added some offset(threshold) to our frustum to see the effect more clearly. *Number of blades 1<<13, offset 3*|![](img/frustumCulling.gif)|
+
 
 ## References
 
