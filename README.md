@@ -22,7 +22,7 @@ The basic Vulkan pipeline as per Khronos documentation is as follows:
 However, each of these shaders can be used to our advantage to harness the processing power of GPU. For this simulation, instead of storing many vertices forming each blade of grass, we use only 3 vertices and one direction vector to represent each blade. We then use tessellation shaders to generate blade geometry and compute shaders to influence blades by natural forces.
 The following diagram shows how the Vulkan pipeline has been used in this project to simulate grass:
 
-![](img/vulkanGrassPipeline.jpeg)
+![](img/vulkanGrassPipeline.png)
 
 
 ### Compute pipeline
