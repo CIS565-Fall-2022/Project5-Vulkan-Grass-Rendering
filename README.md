@@ -20,7 +20,7 @@ This simulation is broken into three parts: Tessellation of the grass blade into
 
 ![](img/diGrass2.gif)
 
-## Core Features Implemented
+## Core Features and Results
 
 ### 1. Grass Shape Tessellation
 
@@ -50,8 +50,6 @@ Each of the above points are represented as `vec4s` where the element _w_ (fourt
 ### 2. Environmental Forces
 
 ### 3. Culling
-
-## Results
 
 ## Performance Analysis
 
