@@ -59,6 +59,11 @@ There are three environmental forces that impact the grass blade:
 - Gravity: Gravitational force from the ground
 - Wind: Force applied by wind and air
 
+#### Gravity
+
+With only gravity active, all grass blades will collapse to the ground. Gravitational force is a combination of `frontal gravity` and `downward gravity`. 
+
+
 ### 3. Culling
 
 ## Performance Analysis
