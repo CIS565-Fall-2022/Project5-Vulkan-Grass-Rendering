@@ -22,7 +22,7 @@ This simulation is broken into three parts: Tessellation of the grass blade into
 
 ## Core Features Implemented
 
-### Grass Shape Tessellation
+### 1. Grass Shape Tessellation
 
 At the initial stage of the project, there is only a patch of dirt with no visible grass on it. This is because all grass blades initially are represented by one vertex. In order for grass blades to appear, we must tessellate the vertex into a surface curve that represents the grass blade's shape. Based on Real-Time Grass Rendering, grass can be suggested to follow these possible curves:
 
@@ -47,9 +47,9 @@ Each of the above points are represented as `vec4s` where the element _w_ (fourt
 - `up.w - blade stiffness`: stiffness of the blade/resistance towards the environmental forces
 
 
-### Environmental Forces
+### 2. Environmental Forces
 
-### Culling
+### 3. Culling
 
 ## Results
 
