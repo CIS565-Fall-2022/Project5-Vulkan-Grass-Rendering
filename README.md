@@ -28,7 +28,11 @@ At the initial stage of the project, there is only a patch of dirt with no visib
 
 <img src="https://github.com/dluisnothere/Project5-Vulkan-Grass-Rendering/blob/main/img/bladeShape.png" width="400">
 
-For my project, I chose the quadric "blade" shape for my grass.
+For my project, I chose #3, the quadric "blade" shape for my grass.
+
+Furthermore, each grass blade is controlled by a series of control points illustrated by the following diagram:
+
+![](img/bladeModel.png)
 
 ### Environmental Forces
 
