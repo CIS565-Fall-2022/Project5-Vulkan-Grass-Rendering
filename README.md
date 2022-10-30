@@ -53,6 +53,12 @@ Here is the simulation without any forces:
 
 ### 2. Environmental Forces
 
+
+
+- Recovery: A force based on stiffness of a blade that counteracts external forces of gravity and wind
+- Gravity: Gravitational force from the ground
+- Wind: Force applied by wind and air
+
 ### 3. Culling
 
 ## Performance Analysis
