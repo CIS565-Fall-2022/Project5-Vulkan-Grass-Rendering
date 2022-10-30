@@ -41,10 +41,10 @@ Furthermore, each grass blade is controlled by a series of control points illust
 
 Each of the above points are represented as Vec4s where the element _w_ (fourth element) represents the following:
 
-- `v0`: fixed base point of a grass blade
-- `v1`: this point is "interpolated"/calculated as a response to v2 and v0
-- `v2`: this point gets moved based on the environmental forces
-- `up`: The blade's up vector which sprouts from the ground upward in the Y direction. This is the same as the normal of the pane.
+- `v0.w - theta`: 
+- `v1.w - blade height`: this point is "interpolated"/calculated as a response to v2 and v0
+- `v2.w - blade width`: this point gets moved based on the environmental forces
+- `up.w - blade stiffness`: The blade's up vector which sprouts from the ground upward in the Y direction. This is the same as the normal of the pane.
 
 
 ### Environmental Forces
