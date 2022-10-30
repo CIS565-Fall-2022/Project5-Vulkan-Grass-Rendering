@@ -33,9 +33,9 @@ For my project, I chose #3, the quadric "blade" shape for my grass.
 Furthermore, each grass blade is controlled by a series of control points illustrated by the following diagram:
 
 ![](img/blade_model.jpg)
-- `v0`
-- `v1`
-- `v2`
+- `v0`: fixed base point of a grass blade
+- `v1`: this point is "interpolated"/calculated as a response to v2 and v0
+- `v2`: this point gets moved based on the environmental forces
 
 
 ### Environmental Forces
