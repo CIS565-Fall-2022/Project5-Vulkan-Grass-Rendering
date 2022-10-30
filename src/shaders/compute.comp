@@ -113,7 +113,8 @@ void main() {
     vec3 R = (v2orig-v2)*stiff;
 
 
-    vec3 Wi = sin(v0.x+time.totalTime) * sin(v0.z+time.totalTime) * vec3(15, 0, 15);
+    // vec3 Wi = sin(v0.x+time.totalTime) * sin(v0.z+time.totalTime) * vec3(15, 0, 15);
+    vec3 Wi = sin(v0.x+v0.z+time.totalTime) * vec3(15, 0, 15);
 
     float fd = 1-abs(dot(normalize(Wi), normalize(v2-v0)));
     float fr = dot(v2-v0, up) / h;
