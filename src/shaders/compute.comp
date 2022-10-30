@@ -4,9 +4,9 @@
 #define WORKGROUP_SIZE 32
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
-#define OrientationCull 1
+#define OrientationCull 0
 #define ViewFrustumCull 1
-#define DistanceCull 1
+#define DistanceCull 0
 
 layout(set = 0, binding = 0) uniform CameraBufferObject {
     mat4 view;
@@ -100,6 +100,8 @@ void main() {
     vec3 force_w=wind_dir*wind_alignment;
 
     //Translate v2 as a result of forces
+    //vec3 tv2_vec = (force_g+force_r+force_w)*deltaTime;
+
     vec3 tv2_vec = (force_g+force_r+force_w)*deltaTime;
     v2_vec +=tv2_vec;
 

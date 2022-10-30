@@ -1,5 +1,8 @@
 #include "Scene.h"
 #include "BufferUtils.h"
+#include <iostream>
+
+#define FRAME_UPLIMIT 30
 
 Scene::Scene(Device* device) : device(device) {
     BufferUtils::CreateBuffer(device, sizeof(Time), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, timeBuffer, timeBufferMemory);
@@ -24,6 +27,9 @@ void Scene::AddBlades(Blades* blades) {
 }
 
 void Scene::UpdateTime() {
+    //compute FPS
+    static unsigned frameCount = 0;
+    static float frame_end_time = 0.0f;
     high_resolution_clock::time_point currentTime = high_resolution_clock::now();
     duration<float> nextDeltaTime = duration_cast<duration<float>>(currentTime - startTime);
     startTime = currentTime;
@@ -31,6 +37,17 @@ void Scene::UpdateTime() {
     time.deltaTime = nextDeltaTime.count();
     time.totalTime += time.deltaTime;
 
+    frameCount++;
+    frame_end_time += duration_cast<std::chrono::milliseconds>(nextDeltaTime).count();
+
+    if (frameCount == FRAME_UPLIMIT)
+    {
+        float fps= frameCount * 1000 / frame_end_time;
+
+        std::cout << "FPS: " << fps << std::endl;
+        frameCount = 0.0f;
+        frame_end_time = 0.0f;
+    }
     memcpy(mappedData, &time, sizeof(Time));
 }
 

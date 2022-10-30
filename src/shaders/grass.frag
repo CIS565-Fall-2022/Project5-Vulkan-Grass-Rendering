@@ -6,13 +6,13 @@ layout(set = 0, binding = 0) uniform CameraBufferObject {
     mat4 proj;
 } camera;
 
-// TODO: Declare fragment shader inputs
+// DONE: Declare fragment shader inputs
 layout(location=1)in float param_height;
 
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    // TODO: Compute fragment color
+    // DONE: Compute fragment color
     vec4 lightYellow=vec4(250.f,255.f,11.f,255.f)/255.f;
     vec4 orange=vec4(245.f,122.f,22.f,255.f)/255.f;
     vec4 mergeCol =mix(lightYellow,orange,1-param_height);
