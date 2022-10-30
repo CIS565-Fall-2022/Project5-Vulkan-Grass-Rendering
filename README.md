@@ -81,9 +81,15 @@ Wind factor is calculated by using a procedural sinusoidal wave and fbm noise to
 
 #### Rotational Culling 
 
+Rotational Culling removes blades such that its face-forward is exacty orthongal to the camera view vector towards the blade. This is because a blade has no thickness, so at that angle, there is no reason to send it to the render pipeline.
+
 #### Frustum Culling
 
+Frustum Culling removes blades that are outside of your viewport. With my implementation, there is a slight border where I remove blades within the frame as well so you can see the effect more clearly.
+
 #### Distance Culling
+
+Distance Culling removes blades that are outside of a certain distance.
 
 ## Performance Analysis
 
