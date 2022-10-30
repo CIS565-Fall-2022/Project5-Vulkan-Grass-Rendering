@@ -231,7 +231,7 @@ void Renderer::CreateComputeDescriptorSetLayout() {
     layoutInfo.pBindings = bindings.data();
 
     if (vkCreateDescriptorSetLayout(logicalDevice, &layoutInfo, nullptr, &computeDescriptorSetLayout) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create descriptor set layout");
+        throw std::runtime_error("Failed to create compute descriptor set layout");
     }
 
 }
@@ -255,7 +255,7 @@ void Renderer::CreateGrassDescriptorSetLayout()
     layoutInfo.pBindings = bindings.data();
 
     if (vkCreateDescriptorSetLayout(logicalDevice, &layoutInfo, nullptr, &grassDescriptorSetLayout) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create descriptor set layout");
+        throw std::runtime_error("Failed to create grass descriptor set layout");
     }
 }
 
@@ -394,7 +394,7 @@ void Renderer::CreateGrassDescriptorSets() {
 
     // Allocate descriptor sets
     if (vkAllocateDescriptorSets(logicalDevice, &allocInfo, grassDescriptorSets.data()) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to allocate descriptor set");
+        throw std::runtime_error("Failed to allocate grass descriptor set");
     }
 
     std::vector<VkWriteDescriptorSet> descriptorWrites(grassDescriptorSets.size());
@@ -419,7 +419,6 @@ void Renderer::CreateGrassDescriptorSets() {
 
     // Update descriptor sets
     vkUpdateDescriptorSets(logicalDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-
 }
 
 void Renderer::CreateTimeDescriptorSet() {
@@ -460,11 +459,10 @@ void Renderer::CreateTimeDescriptorSet() {
 void Renderer::CreateComputeDescriptorSets() {
     // TODO: Create Descriptor sets for the compute pipeline
     // The descriptors should point to Storage buffers which will hold the grass blades, the culled grass blades, and the output number of grass blades 
-
     computeDescriptorSets.resize(scene->GetBlades().size());
 
     // Describe the desciptor set
-    VkDescriptorSetLayout layouts[] = { computeDescriptorSetLayout};
+    VkDescriptorSetLayout layouts[] = { computeDescriptorSetLayout };
     VkDescriptorSetAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = descriptorPool;
@@ -473,7 +471,7 @@ void Renderer::CreateComputeDescriptorSets() {
 
     // Allocate descriptor sets
     if (vkAllocateDescriptorSets(logicalDevice, &allocInfo, computeDescriptorSets.data()) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to allocate descriptor set");
+        throw std::runtime_error("Failed to allocate compute descriptor set");
     }
 
     std::vector<VkWriteDescriptorSet> descriptorWrites(3 * computeDescriptorSets.size());
@@ -486,12 +484,12 @@ void Renderer::CreateComputeDescriptorSets() {
         bladeBufferInfo.range = sizeof(Blade) * NUM_BLADES;
 
         VkDescriptorBufferInfo culledBladeBufferInfo = {};
-        culledBladeBufferInfo.buffer = scene->GetBlades()[i]->GetBladesBuffer();
+        culledBladeBufferInfo.buffer = scene->GetBlades()[i]->GetCulledBladesBuffer();
         culledBladeBufferInfo.offset = 0;
         culledBladeBufferInfo.range = sizeof(Blade) * NUM_BLADES;
 
         VkDescriptorBufferInfo numBladesBufferInfo = {};
-        numBladesBufferInfo.buffer = scene->GetBlades()[i]->GetBladesBuffer();
+        numBladesBufferInfo.buffer = scene->GetBlades()[i]->GetNumBladesBuffer();
         numBladesBufferInfo.offset = 0;
         numBladesBufferInfo.range = sizeof(BladeDrawIndirect);
 
@@ -648,7 +646,7 @@ void Renderer::CreateGraphicsPipeline() {
     colorBlending.blendConstants[2] = 0.0f;
     colorBlending.blendConstants[3] = 0.0f;
 
-    std::vector<VkDescriptorSetLayout> descriptorSetLayouts = { cameraDescriptorSetLayout, grassDescriptorSetLayout };
+    std::vector<VkDescriptorSetLayout> descriptorSetLayouts = { cameraDescriptorSetLayout, modelDescriptorSetLayout };
 
     // Pipeline layout: used to specify uniform values
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
@@ -822,7 +820,7 @@ void Renderer::CreateGrassPipeline() {
     colorBlending.blendConstants[2] = 0.0f;
     colorBlending.blendConstants[3] = 0.0f;
 
-    std::vector<VkDescriptorSetLayout> descriptorSetLayouts = { cameraDescriptorSetLayout, modelDescriptorSetLayout };
+    std::vector<VkDescriptorSetLayout> descriptorSetLayouts = { cameraDescriptorSetLayout, grassDescriptorSetLayout };
 
     // Pipeline layout: used to specify uniform values
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
@@ -1052,7 +1050,7 @@ void Renderer::RecordComputeCommandBuffer() {
     vkCmdBindDescriptorSets(computeCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipelineLayout, 1, 1, &timeDescriptorSet, 0, nullptr);
 
     // TODO: For each group of blades bind its descriptor set and dispatch
-    for (int i = 0; i < scene->GetBlades().size(); ++i) {
+    for (int i = 0; i < computeDescriptorSets.size(); ++i) {
         vkCmdBindDescriptorSets(computeCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipelineLayout, 2, 1, &computeDescriptorSets[i], 0, nullptr);
         vkCmdDispatch(computeCommandBuffer, ceil(NUM_BLADES / WORKGROUP_SIZE), 1, 1);
     }
