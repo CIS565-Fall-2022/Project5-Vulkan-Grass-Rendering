@@ -1,9 +1,7 @@
-CUDA Denoiser For CUDA Path Tracer
+Vulkan Grass Rendering
 ==================================
 
-**University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 3**
-
-**[Repo link](https://github.com/IwakuraRein/Nagi)**
+**University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
 
 - Alex Fu
   
