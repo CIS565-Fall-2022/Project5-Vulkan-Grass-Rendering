@@ -69,6 +69,8 @@ Click each embbed video to see how FPS varies as camera moves around. After intr
     </tr>
 </table>
 
+![](./img/Analysis.png)
+
 ### Frustum Culling
 
 It is meaningless to draw blades that won't be captured by the camera. So we can culled the blades with camera frustum:
@@ -116,7 +118,7 @@ else
 if ((idx+1) % level != 0) return; 
 ```
 
-This significantly increase the FPS when camera zooms out.
+This increase the FPS when camera zooms out. However, the improvement doesn't meet the expectation.
 
 <video src="https://user-images.githubusercontent.com/28486541/198902203-bcd3692b-bdf7-4992-a363-fe4aae4e5edd.mp4"></video>
 
