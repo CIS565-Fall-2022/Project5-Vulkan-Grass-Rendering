@@ -16,8 +16,8 @@ void main() {
     // TODO: Compute fragment color
     vec3 grass_color = vec3(86.0, 125.0, 70.0)/255.0;
 
-    vec3 light_pos = vec3(5.0, 5.0, 5.0);
-    vec3 light_dir = normalize(vec3(light_pos - in_pos));
+    vec3 light_pos = vec3(10.0, 20.0, 0.0);
+    vec3 light_dir = normalize(light_pos - in_pos);
 
     float diffuse_term = clamp(dot(in_norm, light_dir), 0.0, 1.0);
     
