@@ -32,7 +32,7 @@ For my project, I chose #3, the quadric "blade" shape for my grass.
 
 Furthermore, each grass blade is controlled by a series of control points illustrated by the following diagram:
 
-![](img/bladeModel.png)
+![](img/blade_model.jpg)
 
 ### Environmental Forces
 
