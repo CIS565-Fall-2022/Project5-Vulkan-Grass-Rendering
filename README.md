@@ -35,7 +35,7 @@ Furthermore, each grass blade is controlled by a series of control points illust
 ![](img/blade_model.jpg)
 
 - `v0`: fixed base point of a grass blade
-- `v1`: this point is "interpolated"/calculated as a response to v2 and v0
+- `v1`: this point is "interpolated"/calculated as a response to `v2` and `v0`
 - `v2`: this point gets moved based on the environmental forces
 - `up`: The blade's up vector which sprouts from the ground upward in the Y direction. This is the same as the normal of the pane.
 
