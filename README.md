@@ -67,6 +67,8 @@ With only gravity active, all grass blades will collapse to the ground. Gravitat
 
 #### Resistance
 
+Resistance factor is calculated by taking into account a stiffness constant defined by each grass blade. We essentially render the blade between the fully upstanding position and the collapsed ground position.
+
 ![](img/resistance.png)
 
 #### Wind
