@@ -63,7 +63,11 @@ There are three environmental forces that impact the grass blade:
 
 With only gravity active, all grass blades will collapse to the ground. Gravitational force is a combination of `frontal gravity` and `downward gravity`. Environmental gravity acts along a vector of influence which is orthogonal to the width of the blade of the grass (along the face forward direction of the grass). Here is an image of the result with just gravity:
 
+![](img/gravity.png)
+
 #### Resistance
+
+![](img/resistance.png)
 
 #### Wind
 
