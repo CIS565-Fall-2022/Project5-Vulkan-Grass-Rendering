@@ -10,7 +10,9 @@ Vulkan Grass Rendering
 
 ## Introduction
 
-This is my first Vulkan project, which is a grass simulation based on the paper: [Responsive Real-Time Grass Rendering for General 3D Scenes](https://www.cg.tuwien.ac.at/research/publications/2017/JAHRMANN-2017-RRTG/JAHRMANN-2017-RRTG-draft.pdf);
+This is my first Vulkan project, which simulates grass movement in an outdoor environment based on the paper: [Responsive Real-Time Grass Rendering for General 3D Scenes](https://www.cg.tuwien.ac.at/research/publications/2017/JAHRMANN-2017-RRTG/JAHRMANN-2017-RRTG-draft.pdf);
+
+![](img/diGrass.gif)
 
 ## Core Features Implemented
 
