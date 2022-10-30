@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\cggt first year\cis565\Project5\build\CMakeFiles\4062bfbf15624924de349480b346b754\graphics.vert.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="D:\cggt first year\cis565\Project5\src\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="D:\cggt first year\cis565\Project5\src\shaders\graphics.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="D:\cggt first year\cis565\Project5\build\src\CMakeFiles\graphics.vert.spv" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{A5045BCD-4191-3888-8C1C-5CFFFA697E05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{AAFCF59A-23AD-3353-A1A9-B5077B9B08FC}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

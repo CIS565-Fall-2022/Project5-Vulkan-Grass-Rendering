@@ -2,6 +2,8 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 #define WORKGROUP_SIZE 32
+#define GRAVITY 9.80665
+#define INV_SQRT_THREE 0.577350269189625764509148780501957456
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
 layout(set = 0, binding = 0) uniform CameraBufferObject {
@@ -12,14 +14,7 @@ layout(set = 0, binding = 0) uniform CameraBufferObject {
 layout(set = 1, binding = 0) uniform Time {
     float deltaTime;
     float totalTime;
-};
-
-struct Blade {
-    vec4 v0;
-    vec4 v1;
-    vec4 v2;
-    vec4 up;
-};
+} time;
 
 // TODO: Add bindings to:
 // 1. Store the input blades
@@ -36,21 +31,120 @@ struct Blade {
 // 	  uint firstInstance; // = 0
 // } numBlades;
 
+
+struct Blade {
+    vec4 v0;
+    vec4 v1;
+    vec4 v2;
+    vec4 up;
+};
+struct BladeDrawIndirect {
+    uint vertexCount;
+    uint instanceCount;
+    uint firstVertex;
+    uint firstInstance;
+};
+layout(set = 2, binding = 0) buffer NumBlades {
+ 	BladeDrawIndirect numBlades;
+};
+
+layout(set = 2, binding = 1) buffer Blades {
+    Blade blades[];
+};
+
+layout(set = 2, binding = 2) buffer CulledBlades {
+    Blade culledBlades[];
+};
+
 bool inBounds(float value, float bounds) {
     return (value >= -bounds) && (value <= bounds);
 }
 
+vec3 getDifferentDir(vec3 dir) {
+	// Find a direction that is not the dir based of whether or not the
+	// dir's components are all equal to sqrt(1/3) or whether or not at
+	// least one component is less than sqrt(1/3). Learned this trick from
+	// Peter Kutz.
+
+	vec3 T;
+	if (abs(dir.x) < INV_SQRT_THREE) {
+		T = vec3(1, 0, 0);
+	}
+	else if (abs(dir.y) < INV_SQRT_THREE) {
+		T = vec3(0, 1, 0);
+	}
+	else {
+		T = vec3(0, 0, 1);
+	}
+	return T;
+}
+
 void main() {
+    uint idx = gl_GlobalInvocationID.x;
+    if (idx > numBlades.vertexCount) return;
 	// Reset the number of blades to 0
-	if (gl_GlobalInvocationID.x == 0) {
-		// numBlades.vertexCount = 0;
+	if (idx == 0) {
+		numBlades.vertexCount = 0;
 	}
 	barrier(); // Wait till all threads reach this point
 
+    Blade blade = blades[numBlades.firstVertex + idx];
+
     // TODO: Apply forces on every blade and update the vertices in the buffer
+    vec3 v0 = blade.v0.xyz;
+    vec3 up = blade.up.xyz;
+    float h = blade.v1.w;
+    vec3 v2orig = v0 + up*h;
+    vec3 v2 = blade.v2.xyz;
+
+    float theta = blade.v0.w;
+	vec3 T = getDifferentDir(up);
+	T = normalize(cross(T, up));
+	vec3 B = normalize(cross(T, up));
+    vec3 fwd = T * cos(theta) + B * sin(theta);
+    vec3 right = normalize(cross(fwd, up));
+
+    // blade.up.xyz = right;
+
+    vec3 G = -up * GRAVITY;
+    G += 0.15 * GRAVITY * fwd;
+
+    float stiff = blade.up.w;
+    vec3 R = (v2orig-v2)*stiff;
+
+
+    vec3 Wi = sin(v0.x+time.totalTime) * sin(v0.z+time.totalTime) * vec3(15, 0, 15);
+
+    float fd = 1-abs(dot(normalize(Wi), normalize(v2-v0)));
+    float fr = dot(v2-v0, up) / h;
+
+    vec3 W = Wi * fd * fr;
+
+    vec3 delta = (G+R+W) * time.deltaTime;
+    v2 += delta;
+    if (dot(v2-v0, up) < 0){
+        v2 -= delta;
+    }
+    float lproj = length(v2-v0-up * dot(v2-v0, up));
+    vec3 v1 = v0 + h * up * max(1-lproj / h, 0.05 * max(lproj / h, 1));
+    float l0 = length(v0-v2);
+    float l1 = length(v0-v1) + length(v2-v1);
+    float l = (2*l0+l1) *0.33333333333;
+    float r = h / l;
+    vec3 v1new = v0 + r*(v1-v0);
+    vec3 v2new = v1new+r*(v2-v1);
+
+    blade.v2.xyz = v2new;
+    blade.v1.xyz = v1new;
+
 
 	// TODO: Cull blades that are too far away or not in the camera frustum and write them
 	// to the culled blades buffer
 	// Note: to do this, you will need to use an atomic operation to read and update numBlades.vertexCount
 	// You want to write the visible blades to the buffer without write conflicts between threads
+    blades[numBlades.firstVertex + idx] = blade;
+    
+    
+    culledBlades[numBlades.firstVertex + idx] = blade;
+    atomicAdd(numBlades.vertexCount, 1);
 }

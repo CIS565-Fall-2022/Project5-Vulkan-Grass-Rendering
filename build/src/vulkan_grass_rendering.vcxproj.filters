@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\cggt first year\cis565\Project5\src\Blades.cpp" />
+    <ClCompile Include="D:\cggt first year\cis565\Project5\src\BufferUtils.cpp" />
+    <ClCompile Include="D:\cggt first year\cis565\Project5\src\Camera.cpp" />
+    <ClCompile Include="D:\cggt first year\cis565\Project5\src\Device.cpp" />
+    <ClCompile Include="D:\cggt first year\cis565\Project5\src\Image.cpp" />
+    <ClCompile Include="D:\cggt first year\cis565\Project5\src\Instance.cpp" />
+    <ClCompile Include="D:\cggt first year\cis565\Project5\src\Model.cpp" />
+    <ClCompile Include="D:\cggt first year\cis565\Project5\src\Renderer.cpp" />
+    <ClCompile Include="D:\cggt first year\cis565\Project5\src\Scene.cpp" />
+    <ClCompile Include="D:\cggt first year\cis565\Project5\src\ShaderModule.cpp" />
+    <ClCompile Include="D:\cggt first year\cis565\Project5\src\SwapChain.cpp" />
+    <ClCompile Include="D:\cggt first year\cis565\Project5\src\Window.cpp" />
+    <ClCompile Include="D:\cggt first year\cis565\Project5\src\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="D:\cggt first year\cis565\Project5\src\Blades.h" />
+    <ClInclude Include="D:\cggt first year\cis565\Project5\src\BufferUtils.h" />
+    <ClInclude Include="D:\cggt first year\cis565\Project5\src\Camera.h" />
+    <ClInclude Include="D:\cggt first year\cis565\Project5\src\Device.h" />
+    <ClInclude Include="D:\cggt first year\cis565\Project5\src\Image.h" />
+    <ClInclude Include="D:\cggt first year\cis565\Project5\src\Instance.h" />
+    <ClInclude Include="D:\cggt first year\cis565\Project5\src\Model.h" />
+    <ClInclude Include="D:\cggt first year\cis565\Project5\src\QueueFlags.h" />
+    <ClInclude Include="D:\cggt first year\cis565\Project5\src\Renderer.h" />
+    <ClInclude Include="D:\cggt first year\cis565\Project5\src\Scene.h" />
+    <ClInclude Include="D:\cggt first year\cis565\Project5\src\ShaderModule.h" />
+    <ClInclude Include="D:\cggt first year\cis565\Project5\src\SwapChain.h" />
+    <ClInclude Include="D:\cggt first year\cis565\Project5\src\Vertex.h" />
+    <ClInclude Include="D:\cggt first year\cis565\Project5\src\Window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\cggt first year\cis565\Project5\src\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="D:\cggt first year\cis565\Project5\src\shaders\compute.comp">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="D:\cggt first year\cis565\Project5\src\shaders\graphics.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="D:\cggt first year\cis565\Project5\src\shaders\graphics.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="D:\cggt first year\cis565\Project5\src\shaders\grass.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="D:\cggt first year\cis565\Project5\src\shaders\grass.tesc">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="D:\cggt first year\cis565\Project5\src\shaders\grass.tese">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="D:\cggt first year\cis565\Project5\src\shaders\grass.vert">
+      <Filter>shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{AAFCF59A-23AD-3353-A1A9-B5077B9B08FC}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
