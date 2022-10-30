@@ -18,14 +18,14 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
     // TODO: Compute fragment color
-    vec3 cam = vec3(0.f, 1.f, 10.f);
-    vec3 rayDirection = normalize(cam - p);
+    vec3 source = vec3(0.f, 15.f, 0.f);
+    vec3 rayDirection = normalize(source - p);
 
     vec3 topColor = vec3(153.f, 204.f, 51.f) / 255.f;
     vec3 botColor = vec3(0.f, 50.f, 0.f) / 255.f;
     
     vec3 color = botColor + v * (topColor - botColor);
-    color = color * max(abs(dot(rayDirection, n)), 0.5);
+    color = color * min(max(abs(dot(rayDirection, n)) * 1.5, 0.5), 1);
 
 
     outColor = vec4(color, 1.f);

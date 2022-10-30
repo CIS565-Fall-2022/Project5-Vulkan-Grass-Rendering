@@ -26,7 +26,7 @@ void main() {
     vec3 v2 = inV2[0].xyz;
     float w = inV2[0].w;
     float direction = inV0[0].w;
-    vec3 t1 = vec3(cos(direction), 0.f,sin(direction));
+    vec3 t1 = vec3(-cos(direction), 0.f,sin(direction));
     vec3 a = v0 + v * (v1 - v0);
     vec3 b = v1 + v * (v2 - v1);
     vec3 c = a + v * (b - a);
