@@ -47,11 +47,13 @@ bool inBounds(float value, float bounds) {
 }
 
 //some helper functions
-bool pointInFrustum(vec4 point)
+bool pointInFrustum(vec3 point)
 {
-    float tolerance = 0.05f;
-    float h = point.w + tolerance;
-    return inBounds(point.x, h) && inBounds(point.y, h) && inBounds(point.z, h);
+    mat4 vp = camera.proj * camera.view;
+    vec4 pp = vp * vec4(point, 1.0f);
+    float tolerance = 0.2f;
+    float h = pp.w + tolerance;
+    return inBounds(pp.x, h) && inBounds(pp.y, h) && inBounds(pp.z, h);
 }
  
 //some magic numbers...
@@ -65,9 +67,9 @@ bool pointInFrustum(vec4 point)
 #define RECO 1
 #define WIND 1
 
-#define ORIE_CULL 0
-#define VIEW_CULL 0
-#define DIST_CULL 0
+#define ORIE_CULL 1
+#define VIEW_CULL 1
+#define DIST_CULL 1
 
 void main() {
 	// Reset the number of blades to 0
@@ -150,21 +152,13 @@ void main() {
     #endif
 
     //View-frustum culling
+    
     #if VIEW_CULL
         vec3 m = (1/4) * v0 * (1/2) * v1 * (1/4) * v2;
-        mat4 vp = camera.proj * camera.view;
-    
-        vec4 projected_v0 = vp * vec4(v0, 1.0f);
-        //projected_v0 /= projected_v0.w;
-        vec4 projected_v2 = vp * vec4(v2, 1.0f);
-        //projected_v2 /= projected_v2.w;
-        vec4 projected_m = vp  * vec4(m , 1.0f);
-        //projected_m /= projected_m.w;
         //If the test results in false for all three points, the blade is culled.
-        if(!pointInFrustum(projected_v0) ||
-           !pointInFrustum(projected_v2) ||
-           !pointInFrustum(projected_m))
-            return;
+        if(!(pointInFrustum(v0) && pointInFrustum(v2) && pointInFrustum(m)))
+             return;
+            
     #endif
 
     //Distance culling
@@ -172,8 +166,8 @@ void main() {
         float Dproj = length(v0 - eye_pos - up * dot((v0 - eye_pos), up));
         uint n = Low_Level;
         if (mod(id, n) >= (n * (1 - Dproj / Dmax)))
-            return;
+           return;
     #endif
-
+    
     culled_blades[atomicAdd(numBlades.vertexCount, 1)] = in_blades[id];
 }
