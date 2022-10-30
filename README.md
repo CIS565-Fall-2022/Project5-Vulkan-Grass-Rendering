@@ -26,7 +26,10 @@ This simulation is broken into three parts: Tessellation of the grass blade into
 
 At the initial stage of the project, there is only a patch of dirt with no visible grass on it. This is because all grass blades initially are represented by one vertex. In order for grass blades to appear, we must tessellate the vertex into a surface curve that represents the grass blade's shape. Based on Real-Time Grass Rendering, grass can be suggested to follow these possible curves:
 
-<img src="https://github.com/dluisnothere/Project5-Vulkan-Grass-Rendering/blob/main/img/bladeShape.png" width="800">
+<img src="https://github.com/dluisnothere/Project5-Vulkan-Grass-Rendering/blob/main/img/bladeShape.png" width="400">
+
+For my project, I chose the quadric "blade" shape for my grass.
+
 ### Environmental Forces
 
 ### Culling
