@@ -4,6 +4,10 @@
 #define WORKGROUP_SIZE 32
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
+#define OrientationCull 1
+#define ViewFrustumCull 1
+#define DistanceCull 1
+
 layout(set = 0, binding = 0) uniform CameraBufferObject {
     mat4 view;
     mat4 proj;
@@ -21,7 +25,7 @@ struct Blade {
     vec4 up;
 };
 
-// TODO: Add bindings to:
+// DONE: Add bindings to:
 // 1. Store the input blades
 // 2. Write out the culled blades
 // 3. Write the total number of blades remaining
@@ -29,12 +33,24 @@ struct Blade {
 // The project is using vkCmdDrawIndirect to use a buffer as the arguments for a draw call
 // This is sort of an advanced feature so we've showed you what this buffer should look like
 //
-// layout(set = ???, binding = ???) buffer NumBlades {
-// 	  uint vertexCount;   // Write the number of blades remaining here
-// 	  uint instanceCount; // = 1
-// 	  uint firstVertex;   // = 0
-// 	  uint firstInstance; // = 0
-// } numBlades;
+
+
+layout(set=2,binding=0)buffer GrassBlades
+{
+   Blade grassBlades[];
+}grassBlades;
+
+layout(set=2,binding=1)buffer CulledBlades
+{
+Blade culledBlades[];
+}culledBlades;
+
+ layout(set =2, binding =2) buffer NumBlades {
+ 	  uint vertexCount;   // Write the number of blades remaining here
+ 	  uint instanceCount; // = 1
+ 	  uint firstVertex;   // = 0
+ 	  uint firstInstance; // = 0
+ } numBlades;
 
 bool inBounds(float value, float bounds) {
     return (value >= -bounds) && (value <= bounds);
@@ -43,14 +59,122 @@ bool inBounds(float value, float bounds) {
 void main() {
 	// Reset the number of blades to 0
 	if (gl_GlobalInvocationID.x == 0) {
-		// numBlades.vertexCount = 0;
+		numBlades.vertexCount = 0;
 	}
 	barrier(); // Wait till all threads reach this point
 
-    // TODO: Apply forces on every blade and update the vertices in the buffer
+    
+    uint threadIdx = gl_GlobalInvocationID.x;
+    Blade blade = grassBlades.grassBlades[threadIdx];
 
-	// TODO: Cull blades that are too far away or not in the camera frustum and write them
+    // DONE: Apply forces on every blade and update the vertices in the buffer
+    float orient = blade.v0.w;
+    float height = blade.v1.w;
+    float width  =blade.v2.w;
+    float stiffness  = blade.up.w;
+
+    vec3 v0_vec = blade.v0.xyz;
+    vec3 v1_vec = blade.v1.xyz;
+    vec3 v2_vec = blade.v2.xyz;
+    vec3 up_vec = blade.up.xyz;
+
+    vec3 orient_vec = normalize(vec3(cos(orient), 0.f, sin(orient)));
+    vec3 frontface_vec = normalize(cross(orient_vec, up_vec));
+    // DONE: Apply forces on every blade and update the vertices in the buffer
+
+    //Gravity
+    vec4 gE=vec4(0.f,-1.f,0.f,5.f);
+    vec3 force_gE=normalize(gE.xyz)*gE.w;
+    vec3 force_gF=0.25*length(force_gE)*frontface_vec;
+    vec3 force_g=force_gF+force_gE;
+
+    //Recovery force
+    vec3 v2_init = v0_vec+normalize(up_vec)*height;
+    vec3 force_r = (v2_init-v2_vec)*stiffness;
+
+    // Wind Force
+    vec3 wind_dir =vec3(cos(4*totalTime),0.f,sin(5*totalTime));
+    float fd = 1-abs(dot(normalize(wind_dir),normalize(v2_vec-v0_vec)));
+    float fr=dot(v2_vec-v0_vec,up_vec)/height;
+    float wind_alignment = fd*fr;
+    vec3 force_w=wind_dir*wind_alignment;
+
+    //Translate v2 as a result of forces
+    vec3 tv2_vec = (force_g+force_r+force_w)*deltaTime;
+    v2_vec +=tv2_vec;
+
+    //Ensure v2 does not push into the ground
+    v2_vec -= up_vec*min(dot(v2_vec-v0_vec,up_vec),0.0f);
+
+    //Adjust v1 as the result of new v2 position
+    float I_proj = length(v2_vec-v0_vec-up_vec*dot(v2_vec-v0_vec,up_vec));
+    v1_vec = v0_vec + height * up_vec * max(1.f - I_proj / height, 0.05f * max(I_proj / height, 1.f));
+
+    bool cull=false;
+	//DONE: Cull blades that are too far away or not in the camera frustum and write them
 	// to the culled blades buffer
+    float n = 2.f;                                                  // Degree of Bezier curve
+    float L0 = length(v2_vec - v0_vec);
+    float L1 = length(v2_vec - v1_vec) + length(v1_vec - v0_vec);
+    float L_blade = (2.f * L0 + (n - 1.f) * L1) / (n + 1.f);
+
+    float r = height / L_blade;
+    v1_vec = v0_vec + r * (v1_vec - v0_vec);
+    v2_vec = v1_vec + r * (v2_vec - v1_vec);
 	// Note: to do this, you will need to use an atomic operation to read and update numBlades.vertexCount
 	// You want to write the visible blades to the buffer without write conflicts between threads
+
+    //Cull Method
+    
+    vec3 cameraPos = inverse(camera.view)[3].xyz;
+
+    #if OrientationCull
+    //Check orientation
+    float angle_camera_blade = dot(frontface_vec,normalize(v0_vec-cameraPos));
+    if(angle_camera_blade>0.9)
+    {
+    cull=true;
+    }
+    else{
+    cull=false;
+    }
+    #endif
+
+    #if ViewFrustumCull
+    float tol=20.f;
+    vec3 md = 0.25*v0_vec+0.5*v1_vec+0.25*v2_vec;
+    mat4 VP=camera.proj*camera.view;
+
+    vec4 v0_ndc = VP*vec4(v0_vec,1.f);
+    vec4 md_ndc = VP*vec4(md,1.f);
+    vec4 v2_ndc=VP*vec4(v2_vec,1.f);
+
+    float v0_lim=v0_ndc.w+tol;
+    float v2_lim=tol;
+    float md_lim=tol;
+
+    bool keep_v0=(inBounds(v0_ndc.x,v0_lim))&&
+    (inBounds(v0_ndc.y,v0_lim));
+    bool keep_md=(inBounds(md_ndc.x,md_lim))&&
+    (inBounds(md_ndc.y,md_lim));
+    bool keep_v2=(inBounds(v2_ndc.x,v2_lim))&&
+    (inBounds(v2_ndc.y,v2_lim));
+
+    cull=cull||(!keep_v0&&!keep_md&&!keep_v2);
+
+    #endif
+
+    #if DistanceCull
+    float d_proj = length(v0_vec-cameraPos-up_vec*dot(up_vec,(v0_vec-cameraPos)));
+    float maxDistance=20.f;
+    int cullLevel=6;
+    cull=cull||(mod(threadIdx,cullLevel)>floor(cullLevel*(1.f-d_proj/maxDistance)));
+    #endif
+    grassBlades.grassBlades[threadIdx].v1.xyz = v1_vec;
+    grassBlades.grassBlades[threadIdx].v2.xyz = v2_vec;
+
+    if(!cull)
+    {
+    culledBlades.culledBlades[atomicAdd(numBlades.vertexCount,1)]=grassBlades.grassBlades[threadIdx];
+    }
 }

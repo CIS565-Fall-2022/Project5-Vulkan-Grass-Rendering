@@ -222,7 +222,7 @@ void Renderer::CreateComputeDescriptorSetLayout() {
     numBladesLayoutBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
     numBladesLayoutBinding.pImmutableSamplers = nullptr;
 
-    std::vector<VkDescriptorSetLayoutBinding> bindings = { inputGrassBladeLayoutBinding,cullBladesLayoutBinding,numBladesLayoutBinding };
+    std::vector<VkDescriptorSetLayoutBinding> bindings = { inputGrassBladeLayoutBinding, cullBladesLayoutBinding, numBladesLayoutBinding };
 
     // Create the descriptor set layout
     VkDescriptorSetLayoutCreateInfo layoutInfo = {};
@@ -363,7 +363,7 @@ void Renderer::CreateGrassDescriptorSets() {
     VkDescriptorSetAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = descriptorPool;
-    allocInfo.descriptorSetCount = 1;
+    allocInfo.descriptorSetCount = static_cast<uint32_t>(grassDescriptorSets.size());
     allocInfo.pSetLayouts = layouts;
 
     //allocate descriptor sets
@@ -455,7 +455,7 @@ void Renderer::CreateComputeDescriptorSets() {
         throw std::runtime_error("Failed to allocate descriptor set");
     }
 
-    std::vector<VkWriteDescriptorSet> descriptorWrites(3 * sizeof(computeDescriptorSets.size()));
+    std::vector<VkWriteDescriptorSet> descriptorWrites(3 * computeDescriptorSets.size());
     for (uint32_t i = 0; i < scene->GetBlades().size(); ++i)
     {
         VkDescriptorBufferInfo grassBladeBufferInfo = {};
