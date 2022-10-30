@@ -79,6 +79,12 @@ Wind factor is calculated by using a procedural sinusoidal wave and fbm noise to
 
 ### 3. Culling
 
+#### Rotational Culling 
+
+#### Frustum Culling
+
+#### Distance Culling
+
 ## Performance Analysis
 
 ## Bloopers! :)
