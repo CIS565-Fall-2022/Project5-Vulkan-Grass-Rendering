@@ -10,17 +10,34 @@ layout(set = 0, binding = 0) uniform CameraBufferObject {
 
 // TODO: Declare tessellation control shader inputs and outputs
 
+// These are arrays because your patch might be starting from multiple vertices.
+// For our purposes, we only start with 1 vertex so all of these arrays only contain one vec4
+
+layout(location = 0) in vec4 in_pos0[];
+layout(location = 1) in vec4 in_pos1[];
+layout(location = 2) in vec4 in_pos2[];
+layout(location = 3) in vec4 in_up[];
+
+layout(location = 0) out vec4 out_pos0[];
+layout(location = 1) out vec4 out_pos1[];
+layout(location = 2) out vec4 out_pos2[];
+layout(location = 3) out vec4 out_up[];
+
 void main() {
 	// Don't move the origin location of the patch
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 
 	// TODO: Write any shader outputs
+    out_pos0[gl_InvocationID] = in_pos0[gl_InvocationID];
+    out_pos1[gl_InvocationID] = in_pos1[gl_InvocationID];
+    out_pos2[gl_InvocationID] = in_pos2[gl_InvocationID];
+    out_up[gl_InvocationID] = in_up[gl_InvocationID];
 
 	// TODO: Set level of tesselation
-    // gl_TessLevelInner[0] = ???
-    // gl_TessLevelInner[1] = ???
-    // gl_TessLevelOuter[0] = ???
-    // gl_TessLevelOuter[1] = ???
-    // gl_TessLevelOuter[2] = ???
-    // gl_TessLevelOuter[3] = ???
+    gl_TessLevelInner[0] = 4;
+    gl_TessLevelInner[1] = 4;
+    gl_TessLevelOuter[0] = 4;
+    gl_TessLevelOuter[1] = 4;
+    gl_TessLevelOuter[2] = 4;
+    gl_TessLevelOuter[3] = 4;
 }
