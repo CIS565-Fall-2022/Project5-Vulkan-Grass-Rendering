@@ -10,15 +10,15 @@ layout(set = 0, binding = 0) uniform CameraBufferObject {
     mat4 proj;
 } camera;
 
-layout (location = 0) in vec4 v0in[];
-layout (location = 1) in vec4 v1in[];
-layout (location = 2) in vec4 v2in[];
-layout (location = 3) in vec4 upin[];
+layout (location = 0) in vec3 v0in[];
+layout (location = 1) in vec3 v1in[];
+layout (location = 2) in vec3 v2in[];
+layout (location = 3) in vec3 rightin[];
 
-layout (location = 0) out vec4 v0out[];
-layout (location = 1) out vec4 v1out[];
-layout (location = 2) out vec4 v2out[];
-layout (location = 3) out vec4 rightout[];
+layout (location = 0) out vec3 v0out[];
+layout (location = 1) out vec3 v1out[];
+layout (location = 2) out vec3 v2out[];
+layout (location = 3) out vec3 rightout[];
 
 vec3 getDifferentDir(vec3 dir) {
 	// Find a direction that is not the dir based of whether or not the
@@ -52,17 +52,6 @@ void main() {
     v0out[gl_InvocationID] = v0in[gl_InvocationID];
     v1out[gl_InvocationID] = v1in[gl_InvocationID];
     v2out[gl_InvocationID] = v2in[gl_InvocationID];
-
-    float theta = v0in[gl_InvocationID].w;
-    vec3 up = upin[gl_InvocationID].xyz;
-    
-	vec3 T = getDifferentDir(up);
-	T = normalize(cross(T, up));
-	vec3 B = normalize(cross(T, up));
-
-    vec3 fwd = T * cos(theta) + B * sin(theta);
-    vec3 right = cross(fwd, up) * (v2in[gl_InvocationID].w);
-    rightout[gl_InvocationID] = vec4(right, upin[gl_InvocationID].w);
-    // rightout[gl_InvocationID] = vec4(upin[gl_InvocationID].xyz * v2in[gl_InvocationID].w, upin[gl_InvocationID].w);
+    rightout[gl_InvocationID] = rightin[gl_InvocationID];
     
 }
