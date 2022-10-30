@@ -15,6 +15,8 @@ Tested on: Windows 10, i7-10750H @ 2.60GHz, 16GB, GTX 3060 6GB
 
 ## Features
 
+![](./img/my_grass.gif)
+
 ## Performance Analysis
 
 65536 blades. The resolution is 640x480.
