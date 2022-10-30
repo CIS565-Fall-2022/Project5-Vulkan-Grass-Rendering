@@ -39,7 +39,7 @@ Furthermore, each grass blade is controlled by a series of control points illust
 - `v2`: this point gets moved based on the environmental forces
 - `up`: The blade's up vector which sprouts from the ground upward in the Y direction. This is the same as the normal of the pane.
 
-Each of the above points are represented as Vec4s where the element _w_ (fourth element) represents the following:
+Each of the above points are represented as `vec4s` where the element _w_ (fourth element) represents the following:
 
 - `v0.w - theta`: angle of rotation of the grass blade. This is different for every blade of grass which will give variety to the grass patterns.
 - `v1.w - blade height`: height of the grass blade
