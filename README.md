@@ -73,6 +73,8 @@ Resistance factor is calculated by taking into account a stiffness constant defi
 
 #### Wind
 
+Wind factor is calculated by using a procedural sinusoidal wave and fbm noise to calculate some noise factor applied to the vector displacement.
+
 ![](img/wind.gif)
 
 ### 3. Culling
