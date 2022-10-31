@@ -2,6 +2,8 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 #define WORKGROUP_SIZE 32
+#define CULLING 1
+
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
 layout(set = 0, binding = 0) uniform CameraBufferObject {
@@ -29,28 +31,200 @@ struct Blade {
 // The project is using vkCmdDrawIndirect to use a buffer as the arguments for a draw call
 // This is sort of an advanced feature so we've showed you what this buffer should look like
 //
-// layout(set = ???, binding = ???) buffer NumBlades {
-// 	  uint vertexCount;   // Write the number of blades remaining here
-// 	  uint instanceCount; // = 1
-// 	  uint firstVertex;   // = 0
-// 	  uint firstInstance; // = 0
-// } numBlades;
+
+layout(set = 2, binding = 0) buffer Blades {
+    Blade blades[];
+}; 
+
+layout(set = 2, binding = 1) buffer CulledBlades {
+    Blade culledBlades[];
+};
+
+layout(set = 2, binding = 2) buffer NumBlades {
+ 	  uint vertexCount;   // Write the number of blades remaining here
+ 	  uint instanceCount; // = 1
+ 	  uint firstVertex;   // = 0
+ 	  uint firstInstance; // = 0
+} numBlades;
+
 
 bool inBounds(float value, float bounds) {
     return (value >= -bounds) && (value <= bounds);
 }
 
+// Took this from my 566 Hw 1
+float random3D(vec3 p, float time) {
+    return cos(float(time) * 0.005) * sin(length(vec3(
+                            dot(p, vec3(126.1, 316.8, 106.2)), 
+                            dot(p, vec3(266.5, 186.3, 206.4)),
+                            dot(p, vec3(166.4, 246.2, 126.5))
+                          ) * 0.01 ));
+}
+
+float interpolateNoise3D(vec3 p, float time)
+{
+    int intX = int(floor(p.x));
+    float fractX = fract(p.x);
+    int intY = int(floor(p.y));
+    float fractY = fract(p.y);
+    int intZ = int(floor(p.z));
+    float fractZ = fract(p.z);
+
+    float v1 = random3D(vec3(intX, intY, intZ), time);
+    float v2 = random3D(vec3(intX + 1, intY, intZ), time);
+    float v3 = random3D(vec3(intX, intY + 1, intZ), time);
+    float v4 = random3D(vec3(intX + 1, intY + 1, intZ), time);
+    float v5 = random3D(vec3(intX, intY, intZ + 1), time);
+    float v6 = random3D(vec3(intX + 1, intY, intZ + 1), time);
+    float v7 = random3D(vec3(intX, intY + 1, intZ + 1), time);
+    float v8 = random3D(vec3(intX + 1, intY + 1, intZ + 1), time);
+
+
+    float i1 = mix(v1, v2, fractX);
+    float i2 = mix(v3, v4, fractY);
+    float i3 = mix(v5, v6, fractY);
+    float i4 = mix(v7, v8, fractZ);
+    float i5 = mix(v1, v3, fractZ);
+    float i6 = mix(v2, v4, fractX);
+    float i7 = mix(v5, v7, fractZ);
+    float i8 = mix(v6, v8, fractX);
+
+    float mix1 = mix(mix(i1, i2, fractZ), mix(i3, i4, fractX), fractY);
+    float mix2 = mix(mix(i5, i6, fractX), mix(i7, i8, fractY), fractZ);
+    float finalMix = mix(mix1, mix2, fractX);
+    return finalMix;
+}
+
+float fbmNoise(vec3 p, float time)
+{
+    float total = 0.0;
+    float persistence = 0.5;
+    float frequency = 1.0;
+    float amplitude = 2.0;
+    int octaves = 5;
+
+    for (int i = 1; i <= octaves; i++) {
+        total += amplitude * interpolateNoise3D(frequency * p, time);
+        frequency *= 2.0;
+        amplitude *= persistence;
+    }
+    return total;
+}
+
+vec3 sinWave(vec3 p, float time)
+{
+    float noise = fbmNoise(p, time);
+    vec3 returnVec = 10 * vec3(sin(time) * (1 - noise), 0, cos(time) * noise);
+    return returnVec;
+}
+
 void main() {
 	// Reset the number of blades to 0
 	if (gl_GlobalInvocationID.x == 0) {
-		// numBlades.vertexCount = 0;
+		numBlades.vertexCount = 0;
 	}
 	barrier(); // Wait till all threads reach this point
 
-    // TODO: Apply forces on every blade and update the vertices in the buffer
+    uint idx = gl_GlobalInvocationID.x;
+    vec3 v0 = vec3(blades[idx].v0);
+    vec3 v1 = vec3(blades[idx].v1);
+    vec3 v2 = vec3(blades[idx].v2);
+    vec3 up = vec3(blades[idx].up);
 
-	// TODO: Cull blades that are too far away or not in the camera frustum and write them
-	// to the culled blades buffer
-	// Note: to do this, you will need to use an atomic operation to read and update numBlades.vertexCount
-	// You want to write the visible blades to the buffer without write conflicts between threads
+    float theta = blades[idx].v0.w;
+    float bladeHeight = blades[idx].v1.w;
+    float width = blades[idx].v2.w;
+    float stiffness = blades[idx].up.w;
+
+    vec3 bitangent = vec3(width * cos(theta), 0, width * sin(theta));
+
+    // recovery
+    vec3 initv2 = v0 + bladeHeight * up;
+    vec3 recovery = (initv2 - v2) * stiffness;
+
+    // gravity
+    float gravEnviro = length(vec3(0.0, -1.0, 0.0) * 9.8);
+    vec3 normal = cross(up, bitangent);
+    vec3 gravFront = 0.25 * gravEnviro * normal;
+    vec3 totalGravity = gravFront + gravEnviro;
+
+    // wind
+    vec3 windDirection = sinWave(v0, totalTime);
+    float fd = 1 - length(dot(normalize(windDirection), normalize(v2 - v0)));
+    float fr = dot(normalize(v2 - v0), up) / bladeHeight;
+    float windAlignment = 3 * fd * fr;
+
+    vec3 wind = windDirection * windAlignment;
+    
+    //vec3 displacementV2 = (recovery + totalGravity + wind) * deltaTime;
+    vec3 displacementV2 = (totalGravity + recovery + wind) * deltaTime;
+
+    // calculate position based on the force 
+    v2 += displacementV2;
+
+    //blade length checking
+    v2 = v2 - up * min(dot(up, (v2 - v0)), 0.0);
+
+    float lProj = length(v2 - v0 - up * dot((v2 - v0), up));
+    v1 = v0 + bladeHeight * up * max(1 - (lProj / bladeHeight), 0.05 * max(lProj / bladeHeight, 1));
+
+    // Length checking
+    float l0 = length(v2 - v0);
+    float l1 = length(v2 - v1) + length(v1 - v0);
+    float len = (2 * l0 + 2 * l1) / 4;
+    float r = bladeHeight / len;
+
+    v1 = v0 + r * (v1 - v0);
+    v2 = v1 + r * (v2 - v1);
+
+    blades[idx].v1.xyz = v1.xyz;
+    blades[idx].v2.xyz = v2.xyz;
+
+#if CULLING
+
+    bool orientationCull = false;
+    bool viewFrustumCull = false;
+    bool distanceCull = false;
+    
+    vec3 cameraPos = vec3(inverse(camera.view)[3]);
+
+    // vector from camera to the blade point
+    vec3 camToBladeVec = v0 - cameraPos - up * dot(v0 - cameraPos, up);
+
+    // orientation culling
+    float orientation = abs(dot(camToBladeVec, bitangent));
+
+    if (orientation > 0.9) {
+        // do not render
+        return;
+    }
+
+
+    // view frustum culling
+    vec3 m = 0.25 * v0 + 0.5 * v1 + 0.25 * v2;
+    vec4 pprime = camera.proj * camera.view * vec4(m, 1.0);
+    float h = pprime.w * 0.95;
+    bool v = inBounds(pprime.x, h) && inBounds(pprime.y, h);
+
+    if (!v) {
+    // do not render
+       return;
+    }
+
+    // distance culling
+    float projDist = length(camToBladeVec);
+    int maxDistLevel = 30; 
+    int n = 5;
+
+    float bladeCullFactor = floor(n * (1 - projDist / maxDistLevel));
+
+    if (idx % n >= bladeCullFactor) {
+        // do not render
+        return;
+   }
+
+#endif
+
+    uint originalVertCount = atomicAdd(numBlades.vertexCount, 1);
+    culledBlades[originalVertCount] = blades[idx];
 }
