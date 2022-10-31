@@ -2,17 +2,26 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 #define WORKGROUP_SIZE 32
+
+
+#define SPHERIAL 0
+#define FORCE 1
+#define ORIENTATION 1
+#define VIEW_FRUSTUM 1
+#define DISTANCE 1
+
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
 layout(set = 0, binding = 0) uniform CameraBufferObject {
     mat4 view;
     mat4 proj;
+    vec3 pos;
 } camera;
 
 layout(set = 1, binding = 0) uniform Time {
     float deltaTime;
     float totalTime;
-};
+} time;
 
 struct Blade {
     vec4 v0;
@@ -29,28 +38,118 @@ struct Blade {
 // The project is using vkCmdDrawIndirect to use a buffer as the arguments for a draw call
 // This is sort of an advanced feature so we've showed you what this buffer should look like
 //
-// layout(set = ???, binding = ???) buffer NumBlades {
-// 	  uint vertexCount;   // Write the number of blades remaining here
-// 	  uint instanceCount; // = 1
-// 	  uint firstVertex;   // = 0
-// 	  uint firstInstance; // = 0
-// } numBlades;
+layout(set = 2, binding = 0) buffer NumBlades {
+    uint vertexCount;   
+    uint instanceCount; 
+    uint firstVertex;   
+    uint firstInstance; 
+} numBlades;
+
+layout(set = 2, binding = 1) buffer Blades {
+    Blade data[];
+} blades;
+
+layout(set = 2, binding = 2) buffer CulledBlades {
+    Blade data[];
+} culledBlades;
 
 bool inBounds(float value, float bounds) {
     return (value >= -bounds) && (value <= bounds);
 }
 
+bool inBounds(vec3 value, float bounds) {
+    return (value.x >= -bounds) && (value.x <= bounds) &&
+    (value.y >= -bounds) && (value.y <= bounds) &&
+    (value.y >= -bounds) && (value.y <= bounds);
+}
+
+bool viewFrustum(mat4 VP, vec3 p){
+    vec4 p2 = VP * vec4(p, 1.f);
+    float h = p2.w + .5f;
+    return inBounds(p2.xyz, h);
+}
+
 void main() {
 	// Reset the number of blades to 0
 	if (gl_GlobalInvocationID.x == 0) {
-		// numBlades.vertexCount = 0;
+		numBlades.vertexCount = 0;
 	}
 	barrier(); // Wait till all threads reach this point
 
     // TODO: Apply forces on every blade and update the vertices in the buffer
+    Blade blade = blades.data[gl_GlobalInvocationID.x];
+    vec3 v0 = blade.v0.xyz;
+    float direction = blade.v0.w;
+    vec3 v1 = blade.v1.xyz;
+    float height = blade.v1.w;
+    vec3 v2 = blade.v2.xyz;
+    float width = blade.v2.w;
+    vec3 up = blade.up.xyz;
+    float stiffness = blade.up.w;
+
+    //recovery
+    vec3 r = (v0 + up * height - v2) * stiffness;
+
+    //gravity
+    vec4 D = vec4(0, -1, 0, 9.81);
+    vec3 gE = D.xyz * D.w;
+    vec3 f = normalize(cross(vec3(-cos(direction), 0, sin(direction)), up));
+    vec3 gF = 0.25 * length(gE) * f;
+    vec3 g = gE + gF;
+
+    //wind
+#if SPHERIAL
+    vec3 wi = 20 * normalize(v0) * abs(cos(1.F * time.totalTime - 0.5 * length(v0)));
+#else
+    vec3 wi = 10 * vec3(1,0,1) * abs(cos(1.F * time.totalTime - 0.1 * dot(v0, vec3(1,0,1))));
+#endif
+
+
+    float fd = 1 - abs(dot(normalize(wi), normalize(v2 - v0)));
+    float fr = dot(v2 - v0, up) / height;
+
+    vec3 w = wi * fd * fr;
+
+    //total force
+    vec3 F = r + g + w;
+
+    //update
+#if FORCE
+    v2 = v2 + F * time.deltaTime;
+#endif
+
+    //validation
+    v2 = v2 - up * min(dot(up, v2 - v0), 0.f);
+    float lproj = length(v2 - v0 - up * dot(v2 - v0, up));
+    v1 = v0 + height * up * max(1.f - lproj / height, 0.05 * max(lproj / height, 1.f));
+
+    float L = (2.f * length(v0 - v2) + length(v0 - v1) + length(v1 - v2)) / 3.f;
+    float R = height / L;
+    blade.v1.xyz = v0 + R * (v1 - v0);
+    blade.v2.xyz = blade.v1.xyz + R * (v2 - v1);
+    blades.data[gl_GlobalInvocationID.x] = blade;
 
 	// TODO: Cull blades that are too far away or not in the camera frustum and write them
 	// to the culled blades buffer
 	// Note: to do this, you will need to use an atomic operation to read and update numBlades.vertexCount
 	// You want to write the visible blades to the buffer without write conflicts between threads
+
+#if VIEW_FRUSTUM
+    mat4 VP = camera.proj * camera.view;
+    if (!viewFrustum(VP, v0) && !viewFrustum(VP, v2) && !viewFrustum(VP, 0.25f * v0 + 0.5f * v1 + 0.25f * v2)) return;
+#endif
+
+#if DISTANCE
+    float dproj = length(v0 - camera.pos - up * dot(v0 - camera.pos, up));
+    float dmax = 30;
+    uint n = 20;
+    if (gl_GlobalInvocationID.x % n > floor(n * (1 - dproj / dmax))) return;
+#endif
+
+#if ORIENTATION
+    if (abs(dot(normalize(v0 - camera.pos), vec3(-cos(direction), 0.f, sin(direction)))) > 0.9f) return;
+#endif
+
+
+    culledBlades.data[atomicAdd(numBlades.vertexCount, 1)] = blade;
 }
