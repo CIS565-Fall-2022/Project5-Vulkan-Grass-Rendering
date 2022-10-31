@@ -1,4 +1,5 @@
 #include <vulkan/vulkan.h>
+#include <sstream>
 #include "Instance.h"
 #include "Window.h"
 #include "Renderer.h"
@@ -142,14 +143,36 @@ int main() {
 
     renderer = new Renderer(device, swapChain, scene, camera);
 
-    glfwSetWindowSizeCallback(GetGLFWWindow(), resizeCallback);
-    glfwSetMouseButtonCallback(GetGLFWWindow(), mouseDownCallback);
-    glfwSetCursorPosCallback(GetGLFWWindow(), mouseMoveCallback);
+    GLFWwindow* window = GetGLFWWindow();
+    glfwSetWindowSizeCallback(window, resizeCallback);
+    glfwSetMouseButtonCallback(window, mouseDownCallback);
+    glfwSetCursorPosCallback(window, mouseMoveCallback);
+
+    double fps = 0;
+    double timebase = 0;
+    int frame = 0;
 
     while (!ShouldQuit()) {
         glfwPollEvents();
+
+        frame++;
+        double time = glfwGetTime();
+
+        if (time - timebase > 1.0) {
+            fps = frame / (time - timebase);
+            timebase = time;
+            frame = 0;
+        }
+
         scene->UpdateTime();
         renderer->Frame();
+
+        std::ostringstream ss;
+        ss << "[";
+        ss.precision(1);
+        ss << std::fixed << fps;
+        ss << " fps] " << applicationName;
+        glfwSetWindowTitle(window, ss.str().c_str());
     }
 
     vkDeviceWaitIdle(device->GetVkDevice());

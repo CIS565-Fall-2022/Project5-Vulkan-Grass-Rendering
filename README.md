@@ -50,6 +50,16 @@ In this project, we simulate forces on grass blades while they are still Bezier 
 |**View-frustum culling** - If our blades are not within the camera view, we remove them. For the result shown here, we have added some offset(threshold) to our frustum to see the effect more clearly. *Number of blades 1<<13, offset 3*|![](img/frustumCulling.gif)|
 
 
+## Performance Analysis
+
+For performance improvement we have implemented 3 culling techniques described above. The following chart shows comparison between different culling techniques and their effect on the framerate for a certain number of blades. We see that the most effective technique is distance culling technique as it removes a large number of blades. Frustum culling may appear to be least effective but it's effect can be observed better as the camera position changes. The following observations were made with most of the grass land within the camera view.
+![](img/cullingPerformance.png)
+
+We can also compare the performance with increasing number of blades, with and without culling as shown below. We observe that the framerate initially starts off consistent for smaller number of grass blades, but starts decreasing suddenly after a certain threshold. We can also see that overall framerate is higher when culling is on.
+![](img/grassBladesPerformance.png)
+
+
+
 ## References
 
 - [Khronos Vulkan documentation](https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/)
