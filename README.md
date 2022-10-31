@@ -60,10 +60,17 @@ Last but not least, the distance culling process removes blades according on how
 ![](img/dist_cull.gif) 
 
 ## Performance Analysis
-
-
-
-
+### Number of blades V.S. Frames per Second
+The FPS is measured using Windows built-in tool (Win + G)
+  
+The implementation was tested with and without culling procedures using various numbers of blades. As anticipated, we observe that the FPS falls as the number of blades rises (by a factor of 4).
+  
+![](img/p1.png)
+  
+### Different Culling Operations V.S. Frames per Second
+Each culling operation is used solely for performance measurement in order to comprehend the effects of that operation.
+  
+![](img/p2.png)
 
 
 
