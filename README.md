@@ -12,11 +12,18 @@ Vulkan Grass Rendering
 
 ## Introduction
 
+In this project, I use Vulkan to implement a grass simulator and renderer. I used compute shaders to perform physics calculations on Bezier curves that represent individual grass blades in this application. Since rendering every grass blade on every frame will is fairly inefficient, I have also used compute shaders to cull grass blades that don't contribute to a given frame. The remaining blades are passed to a graphics pipeline. The vertex shader transforms Bezier control points, tessellation shaders dynamically create the grass geometry from the Bezier curves, and the fragment shader shades the grass blades.
+This project is an implementation of the paper, "Responsive Real-Time Grass Rendering for General 3D Scenes" by Klemens Jahrmann and Michael Wimmer using Vulkan API.
+
+|2<sup>20</sup> blades under helicopter wind|2<sup>12</sup> in close-up|
+|---|---|
+|![](img/cullingOff.gif)|![](img/grassResult.gif)|
 
 
 ## Vulkan pipelines
 
 The basic Vulkan pipeline as per Khronos documentation is as follows:
+
 ![](img/vulkanPipeline.png)
 
 However, each of these shaders can be used to our advantage to harness the processing power of GPU. For this simulation, instead of storing many vertices forming each blade of grass, we use only 3 vertices and one direction vector to represent each blade. We then use tessellation shaders to generate blade geometry and compute shaders to influence blades by natural forces.
@@ -39,7 +46,7 @@ In this project, we simulate forces on grass blades while they are still Bezier 
 
 1. **Binding Resources** - In order to update the state of grass blades on every frame, we create a storage buffer to maintain the grass data. We also pass information about how much time has passed in the simulation and the time since the last frame.
 
-2. **Applying natural forces** - We calculate the resultant force on each blade of grass when affected by gravity and wind. Considering the stiffness of each grass, a recovery force is also added which ensures that the grass does not fall on ground.
+2. **Applying natural forces** - We calculate the resultant force on each blade of grass when affected by gravity and wind. Considering the stiffness of each grass, a recovery force is also added which ensures that the grass does not fall on ground. A wave-based noise function determines the direction of the wind.
 
 3. **Culling Tests** - To optimize performance, we perform culling operations on our blades based on orientation, distance from camera and camera's field of view. The following table explains each effect. Refer the base paper for thresholds and calculations.
 
@@ -52,16 +59,23 @@ In this project, we simulate forces on grass blades while they are still Bezier 
 
 ## Performance Analysis
 
-For performance improvement we have implemented 3 culling techniques described above. The following chart shows comparison between different culling techniques and their effect on the framerate for a certain number of blades. We see that the most effective technique is distance culling technique as it removes a large number of blades. Frustum culling may appear to be least effective but it's effect can be observed better as the camera position changes. The following observations were made with most of the grass land within the camera view.
+For performance improvement we have implemented 3 culling techniques described above. The following chart shows comparison between different culling techniques and their effect on the framerate for a certain number of blades.
+
 ![](img/cullingPerformance.png)
 
+We see that the most effective technique is distance culling technique as it removes a large number of blades. Frustum culling may appear to be least effective but it's effect can be observed better as the camera position changes. The above observations were made with most of the grass land within the camera view as shown in the figure below:
+
+![](img/grassBlades.png)
+
 We can also compare the performance with increasing number of blades, with and without culling as shown below. We observe that the framerate initially starts off consistent for smaller number of grass blades, but starts decreasing suddenly after a certain threshold. We can also see that overall framerate is higher when culling is on.
+
 ![](img/grassBladesPerformance.png)
 
 
 
 ## References
 
+- "Responsive Real-Time Grass Rendering for General 3D Scenes" by Klemens Jahrmann and Michael Wimmer
 - [Khronos Vulkan documentation](https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/)
 - [Vulkan Tutorial](https://vulkan-tutorial.com/)
 - [Vulkan Guide](https://vkguide.dev/)
