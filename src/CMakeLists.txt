@@ -44,7 +44,7 @@ foreach(SHADER_SOURCE ${SHADER_SOURCES})
         add_dependencies(vulkan_grass_rendering ${fname}.spv)
     endif(WIN32)
 
-    # TODO: Build shaders on not windows
+    # : Build shaders on not windows
 endforeach()
 
 target_link_libraries(vulkan_grass_rendering ${ASSIMP_LIBRARIES} Vulkan::Vulkan glfw)
