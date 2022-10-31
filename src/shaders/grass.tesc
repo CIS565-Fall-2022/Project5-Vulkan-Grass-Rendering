@@ -1,7 +1,7 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-# define TESS_LEVEL 2
+# define TESS_LEVEL 10
 
 layout(vertices = 1) out;
 
