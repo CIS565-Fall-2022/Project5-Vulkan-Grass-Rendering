@@ -101,6 +101,10 @@ Distance Culling removes blades that are outside of a certain distance.
 
 **Performance Measurements vs. Number of Blades**
 
+![](img/fpsNumBlades.png)
+
 **Performance Measurements vs. Different Culling Methods over an increasing number of blades**
+
+![](img/lastChart.png)
 
 ## Bloopers! :)
