@@ -24,8 +24,6 @@ The following diagram shows how the Vulkan pipeline has been used in this projec
 
 ![](img/vulkanGrassPipeline.png)
 
-
-
 ### Grass Tessellation
 
 |Remarks|Result|
