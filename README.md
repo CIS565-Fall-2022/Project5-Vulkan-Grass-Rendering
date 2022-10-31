@@ -15,7 +15,7 @@ Vulkan Grass Rendering
 In this project, I use Vulkan to implement a grass simulator and renderer. I used compute shaders to perform physics calculations on Bezier curves that represent individual grass blades in this application. Since rendering every grass blade on every frame will is fairly inefficient, I have also used compute shaders to cull grass blades that don't contribute to a given frame. The remaining blades are passed to a graphics pipeline. The vertex shader transforms Bezier control points, tessellation shaders dynamically create the grass geometry from the Bezier curves, and the fragment shader shades the grass blades.
 This project is an implementation of the paper, "Responsive Real-Time Grass Rendering for General 3D Scenes" by Klemens Jahrmann and Michael Wimmer using Vulkan API.
 
-|2<sup>20</sup> blades under helicopter wind|2<sup>12</sup> in close-up|
+|2<sup>20</sup> blades under wind|2<sup>12</sup> in close-up|
 |---|---|
 |![](img/cullingOff.gif)|![](img/grassResult.gif)|
 
