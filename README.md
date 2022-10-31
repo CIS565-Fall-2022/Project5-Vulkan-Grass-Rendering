@@ -17,6 +17,23 @@ CUDA Compute Capability: 8.6
 
 This project implements an efficient grass rendering using Vulkan based on [this paper](https://www.cg.tuwien.ac.at/research/publications/2017/JAHRMANN-2017-RRTG/JAHRMANN-2017-RRTG-draft.pdf).
 
+## **Grass Model**
+
+![](img/blade_model.jpg)
+
+This project uses a Bezier curve to represent grass. The control points are:
+
+* **v0**: the position of the grass blade on the geomtry
+* **v1**: a Bezier curve guide that is always "above" `v0` with respect to the grass blade's up vector 
+* **v2**: a physical guide for which we simulate forces on
+
+Additionally, we have these information to control grass's looking and behavior:
+
+* **up**: the blade's up vector
+* **Orientation**: the orientation of grass's face
+* **Height and Width**: grass's shapes
+* **Stifness**: describes how stiff grass will react to forces
+
 ## **Simulate Forces**
 
 There are three type of forces in this simulation: gravity, recovery forces and wind.
