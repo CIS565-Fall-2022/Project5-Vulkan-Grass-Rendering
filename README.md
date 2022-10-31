@@ -59,7 +59,7 @@ Last but not least, the distance culling process removes blades according on how
   
 ![](img/dist_cull.gif) 
 
-## Performance Analtsis
+## Performance Analysis
 
 
 
