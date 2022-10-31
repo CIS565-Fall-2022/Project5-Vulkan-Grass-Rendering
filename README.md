@@ -69,9 +69,10 @@ We see that the most effective technique is distance culling technique as it rem
 
 We can also compare the performance with increasing number of blades, with and without culling as shown below. We observe that the framerate initially starts off consistent for smaller number of grass blades, but starts decreasing suddenly after a certain threshold. We can also see that overall framerate is higher when culling is on.
 
-![](img/grassBladesPerformance.png)
+![](img/grassBladesPerformance2.png)
 
-
+The above graph also shows the effect of varying tesselation level on framerate. The grass blades are tessellated to varying levels of detail as a function of how far the grass blade is from the camera.
+As the distance from the camera increases, we reduce the number of tessellated points. This clearly increases the framerate for any number of blades being generated.
 
 ## References
 

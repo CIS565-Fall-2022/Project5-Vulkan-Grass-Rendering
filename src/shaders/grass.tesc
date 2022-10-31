@@ -1,8 +1,10 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-#define OUTERTESSLEVEL 10
-#define INNERTESSLEVEL 10
+#define VARYING_TESSELLATION true
+#define TESSLEVELMIN 3
+#define TESSLEVELDEFAULT 3
+#define DIST_MAX 15
 
 layout(vertices = 1) out;   // We want tessellation points to be generated for each blade just once, hence we have set layout vertices to 1, which denotes number of blades in output patch
 
@@ -52,11 +54,26 @@ void main() {
 
 	// TODO: Write any shader outputs
 
+    vec3 c = inverse(camera.view)[3].xyz;
+    vec3 v0 =  gl_in[gl_InvocationID].gl_Position.xyz;
+    vec3 up = tes_up[gl_InvocationID].xyz;
+    vec3 viewVec =  v0 - c - up * dot(v0 - c, up);
+    float dproj = length(viewVec);
+
+    int n = TESSLEVELDEFAULT;
+
+    if(VARYING_TESSELLATION) {
+        n = TESSLEVELMIN;
+        if(dproj < DIST_MAX) {
+           n = DIST_MAX - int(floor(dproj / 2.0)) + 4;
+        }
+    }
+
 	// TODO: Set level of tesselation
-    gl_TessLevelInner[0] = INNERTESSLEVEL;
-    gl_TessLevelInner[1] = INNERTESSLEVEL;
-    gl_TessLevelOuter[0] = OUTERTESSLEVEL;
-    gl_TessLevelOuter[1] = OUTERTESSLEVEL;
-    gl_TessLevelOuter[2] = OUTERTESSLEVEL;
-    gl_TessLevelOuter[3] = OUTERTESSLEVEL;
+    gl_TessLevelInner[0] = n;
+    gl_TessLevelInner[1] = n;
+    gl_TessLevelOuter[0] = n;
+    gl_TessLevelOuter[1] = n;
+    gl_TessLevelOuter[2] = n;
+    gl_TessLevelOuter[3] = n;
 }
