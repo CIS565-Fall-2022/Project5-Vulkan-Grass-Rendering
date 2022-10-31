@@ -63,3 +63,16 @@ The projection of a point on the image can be calculated by multypling the posit
 A field of grass seems denser when it is far from the carmera, thus, we can make the grass field sparser with the increase of the distance to the camera. This can also prevent shading blades that are smaller than one pixel.
 
 ![](img/distance.gif)
+
+## Performance Analysis
+We compare the pulling methods with a close camera depth and a large camera depth.
+
+![](img/1.png)
+
+For a close camera depth, the view-frustum culling is the best, since it has the lowest computation requirement.
+
+![](img/2.png)
+
+For a far camera depth, the distance culling is the best, since it will greatly reduce the number of blades, and view-frustum is the worst, since it only increase the workload.
+
+The result shows that the time complexity scales nearly linear with the number of blades.

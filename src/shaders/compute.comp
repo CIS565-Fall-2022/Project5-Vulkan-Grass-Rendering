@@ -3,7 +3,6 @@
 
 #define WORKGROUP_SIZE 32
 
-#define CAM vec3(0.0f, 1.0f, 10.0f)
 
 #define SPHERIAL 0
 #define FORCE 1
@@ -16,6 +15,7 @@ layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 layout(set = 0, binding = 0) uniform CameraBufferObject {
     mat4 view;
     mat4 proj;
+    vec3 pos;
 } camera;
 
 layout(set = 1, binding = 0) uniform Time {
@@ -140,14 +140,14 @@ void main() {
 #endif
 
 #if DISTANCE
-    float dproj = length(v0 - CAM - up * dot(v0 - CAM, up));
+    float dproj = length(v0 - camera.pos - up * dot(v0 - camera.pos, up));
     float dmax = 30;
     uint n = 20;
     if (gl_GlobalInvocationID.x % n > floor(n * (1 - dproj / dmax))) return;
 #endif
 
 #if ORIENTATION
-    if (abs(dot(normalize(v0 - CAM), vec3(-cos(direction), 0.f, sin(direction)))) > 0.9f) return;
+    if (abs(dot(normalize(v0 - camera.pos), vec3(-cos(direction), 0.f, sin(direction)))) > 0.9f) return;
 #endif
 
 
