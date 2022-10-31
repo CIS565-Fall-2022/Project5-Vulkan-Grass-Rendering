@@ -194,10 +194,10 @@ void main() {
     // orientation culling
     float orientation = abs(dot(camToBladeVec, bitangent));
 
-    //if (orientation > 0.9) {
+    if (orientation > 0.9) {
         // do not render
-        //return;
-    //}
+        return;
+    }
 
 
     // view frustum culling
@@ -206,10 +206,10 @@ void main() {
     float h = pprime.w * 0.95;
     bool v = inBounds(pprime.x, h) && inBounds(pprime.y, h);
 
-    //if (!v) {
+    if (!v) {
     // do not render
-       //return;
-    //}
+       return;
+    }
 
     // distance culling
     float projDist = length(camToBladeVec);
@@ -221,7 +221,7 @@ void main() {
     if (idx % n >= bladeCullFactor) {
         // do not render
         return;
-    }
+   }
 
 #endif
 
