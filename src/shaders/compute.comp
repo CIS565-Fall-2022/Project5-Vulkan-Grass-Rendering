@@ -118,40 +118,40 @@ void main() {
 	// end state validation
 
 	// Cull blades
-//	v0 = inputBlades[gl_GlobalInvocationID.x].v0.xyz;
-//	v1 = inputBlades[gl_GlobalInvocationID.x].v1.xyz;
-//	v2 = inputBlades[gl_GlobalInvocationID.x].v2.xyz;
-//	// orientation culling
-//	float ORIENTATION_CULL_THRESH = 0.9; //lower = more aggressively cullled
-//	vec3 camPos = inverse(camera.view)[3].xyz; //check matrix transform ? think its correct
-//	vec3 camToBlade = v0 - camPos;
-//	vec3 planarViewDir = camToBlade - up * dot(camToBlade, up); // eqn 19, presuming up is normal of plane
-//	if (abs(dot(normalize(planarViewDir), normalize(bitangent))) > ORIENTATION_CULL_THRESH) {
-//		return;
-//	}
-//	// end orientation culling
-//
-//	// view-frustum culling
-//	float TOLERANCE = 0.99; // the lower the tolerance, the more the edges are culled
-//	vec3 m = 0.25 * v0 + 0.5 * v1 + 0.25 * v2;
-//	if (!viewFrustumTest(v0, TOLERANCE) &&
-//		!viewFrustumTest(v2, TOLERANCE) &&
-//		!viewFrustumTest(m, TOLERANCE)) {
-//		return;
-//	}
-//	// end view-frustum culling
-//
-//	// distance culling
-//	int NUM_BUCKETS = 10;
-//	float MAX_DISTANCE = 40.0;
-//	// eqn 20 - paper seems to have flipped sign typo??
-//	if (mod(gl_GlobalInvocationID.x, NUM_BUCKETS) >=
-//		floor(NUM_BUCKETS * (1 - length(camToBlade) / MAX_DISTANCE))) {
-//		return;
-//	}
-//	// end distance culling
+	v0 = inputBlades[gl_GlobalInvocationID.x].v0.xyz;
+	v1 = inputBlades[gl_GlobalInvocationID.x].v1.xyz;
+	v2 = inputBlades[gl_GlobalInvocationID.x].v2.xyz;
+	// orientation culling
+	float ORIENTATION_CULL_THRESH = 0.9; //lower = more aggressively cullled
+	vec3 camPos = inverse(camera.view)[3].xyz; //check matrix transform ? think its correct
+	vec3 camToBlade = v0 - camPos;
+	vec3 planarViewDir = camToBlade - up * dot(camToBlade, up); // eqn 19, presuming up is normal of plane
+	if (abs(dot(normalize(planarViewDir), normalize(bitangent))) > ORIENTATION_CULL_THRESH) {
+		return;
+	}
+	// end orientation culling
 
-	//culled[atomicAdd(numBlades.vertexCount, 1)] = inputBlades[gl_GlobalInvocationID.x];
-	atomicAdd(numBlades.vertexCount, 1);
-	culled[gl_GlobalInvocationID.x] = inputBlades[gl_GlobalInvocationID.x];
+	// view-frustum culling
+	float TOLERANCE = 0.95; // the lower the tolerance, the more the edges are culled
+	vec3 m = 0.25 * v0 + 0.5 * v1 + 0.25 * v2;
+	if (!viewFrustumTest(v0, TOLERANCE) &&
+		!viewFrustumTest(v2, TOLERANCE) &&
+		!viewFrustumTest(m, TOLERANCE)) {
+		return;
+	}
+	// end view-frustum culling
+
+	// distance culling
+	int NUM_BUCKETS = 10;
+	float MAX_DISTANCE = 40.0;
+	// eqn 20 - paper seems to have flipped sign typo??
+	if (mod(gl_GlobalInvocationID.x, NUM_BUCKETS) >=
+		floor(NUM_BUCKETS * (1 - length(camToBlade) / MAX_DISTANCE))) {
+		return;
+	}
+	// end distance culling
+
+	culled[atomicAdd(numBlades.vertexCount, 1)] = inputBlades[gl_GlobalInvocationID.x];
+//	atomicAdd(numBlades.vertexCount, 1);
+//	culled[gl_GlobalInvocationID.x] = inputBlades[gl_GlobalInvocationID.x];
 }
