@@ -1,4 +1,5 @@
 #include <vulkan/vulkan.h>
+#include <sstream>
 #include "Instance.h"
 #include "Window.h"
 #include "Renderer.h"
@@ -79,6 +80,7 @@ int main() {
         throw std::runtime_error("Failed to create window surface");
     }
 
+    // create physical device
     instance->PickPhysicalDevice({ VK_KHR_SWAPCHAIN_EXTENSION_NAME }, QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit, surface);
 
     VkPhysicalDeviceFeatures deviceFeatures = {};
@@ -86,12 +88,14 @@ int main() {
     deviceFeatures.fillModeNonSolid = VK_TRUE;
     deviceFeatures.samplerAnisotropy = VK_TRUE;
 
+    // create logical device
     device = instance->CreateDevice(QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit, deviceFeatures);
 
-    swapChain = device->CreateSwapChain(surface, 5);
+    swapChain = device->CreateSwapChain(surface, 5);    // ??? which 5 buffers
 
     camera = new Camera(device, 640.f / 480.f);
 
+    // create command pool
     VkCommandPoolCreateInfo transferPoolInfo = {};
     transferPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     transferPoolInfo.queueFamilyIndex = device->GetInstance()->GetQueueFamilyIndices()[QueueFlags::Transfer];
@@ -139,20 +143,43 @@ int main() {
 
     renderer = new Renderer(device, swapChain, scene, camera);
 
-    glfwSetWindowSizeCallback(GetGLFWWindow(), resizeCallback);
-    glfwSetMouseButtonCallback(GetGLFWWindow(), mouseDownCallback);
-    glfwSetCursorPosCallback(GetGLFWWindow(), mouseMoveCallback);
+    GLFWwindow* window = GetGLFWWindow();
+    glfwSetWindowSizeCallback(window, resizeCallback);
+    glfwSetMouseButtonCallback(window, mouseDownCallback);
+    glfwSetCursorPosCallback(window, mouseMoveCallback);
+
+    double fps = 0;
+    double timebase = 0;
+    int frame = 0;
 
     while (!ShouldQuit()) {
         glfwPollEvents();
+
+        frame++;
+        double time = glfwGetTime();
+
+        if (time - timebase > 1.0) {
+            fps = frame / (time - timebase);
+            timebase = time;
+            frame = 0;
+        }
+
         scene->UpdateTime();
         renderer->Frame();
+
+        std::ostringstream ss;
+        ss << "[";
+        ss.precision(1);
+        ss << std::fixed << fps;
+        ss << " fps] " << applicationName;
+        glfwSetWindowTitle(window, ss.str().c_str());
     }
 
     vkDeviceWaitIdle(device->GetVkDevice());
 
     vkDestroyImage(device->GetVkDevice(), grassImage, nullptr);
     vkFreeMemory(device->GetVkDevice(), grassImageMemory, nullptr);
+    vkDestroySurfaceKHR(instance->GetVkInstance(), surface, nullptr);
 
     delete scene;
     delete plane;
