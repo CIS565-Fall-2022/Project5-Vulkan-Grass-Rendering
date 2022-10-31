@@ -37,8 +37,10 @@ The following diagram shows how the Vulkan pipeline has been used in this projec
 |---|---|
 |Initially we start off with values of v0, v1, v2 as shown here | ![](img/grassBlade2.png)|
 |Tessellation control shader sets outer and inner tessellation level to 10 for each side|![](img/quadLevels.png)|
+|Dynamic tessellation - As the distance from the camera increases, we reduce the number of tessellated points.|![](img/distanceTessellation.png)|
 |Resultant tessellated grass, number of blades = 100|![](img/tessellation.gif)|
 |Resultant tessellated grass, number of blades = 1<<13|![](img/tessellation2.gif)|
+
 
 ### Compute pipeline
 
