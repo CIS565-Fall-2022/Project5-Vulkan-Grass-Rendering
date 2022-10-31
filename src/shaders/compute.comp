@@ -3,7 +3,7 @@
 
 #define WORKGROUP_SIZE 32
 #define ORIENTATION_CULLING 0
-#define VIEW_FRUSTUM_CULLING 1
+#define VIEW_FRUSTUM_CULLING 0
 #define DISTANCE_CULLING 1
 
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
