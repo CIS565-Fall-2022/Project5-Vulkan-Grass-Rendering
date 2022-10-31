@@ -9,7 +9,7 @@ Vulkan Grass Rendering
 
 This project implement a a grass simulator and renderer, which is based on the paper ["Responsive Real-Time Grass Rendering for General 3D Scenes."](https://www.cg.tuwien.ac.at/research/publications/2017/JAHRMANN-2017-RRTG/JAHRMANN-2017-RRTG-draft.pdf). 
 
-|![](img/final.gif)|
+![](img/final.gif)
 
 ## Core Features
 * Shading Pipeline
@@ -37,11 +37,11 @@ Given the gravity vector `D`, the environmental gravity is given by `gE = normal
 
 We simulate wind by simple wave functions. Since there are no requirements for initial states, `abs(cos(a * t + b * f(v0)))` is enough to simulate planner wave and spherical waves. "Responsive Real-Time Grass Rendering for General 3D Scenes."](https://www.cg.tuwien.ac.at/research/publications/2017/JAHRMANN-2017-RRTG/JAHRMANN-2017-RRTG-draft.pdf) also provide a method to process the alignment of the blade towards the wind.
 | Plannar Wave | Plannar Wave with Alignment |
-|---|---|---|
+|---|---|
 |![](img/plannar.gif)|![](img/plannar_alignment.gif)|
 
 | Spherical Wave | Spherical Wave with Alignment |
-|---|---|---|
+|---|---|
 |![](img/spherical.gif)|![](img/spherical_alignmenr.gif)|
 
 **Orientation Culling**
@@ -56,10 +56,10 @@ Due to the pseudo three-dimensionality of the grass blade, we can cull the blade
 
 The projection of a point on the image can be calculated by multypling the position of the point with the view-projection matrix. We can check whether the bottom, the middle and the top point is on the image to know whether this blade will appear in the view. A small tollerance is added in case the blade is still visable after failing the tests due to its width. A minous tollerance can help us check the performance of the view-frustum culling:
 
-|![](img/view.gif)|
+![](img/view.gif)
 
 **Distance Culling**
 
 A field of grass seems denser when it is far from the carmera, thus, we can make the grass field sparser with the increase of the distance to the camera. This can also prevent shading blades that are smaller than one pixel.
 
-|![](img/distance.gif)|
+![](img/distance.gif)
