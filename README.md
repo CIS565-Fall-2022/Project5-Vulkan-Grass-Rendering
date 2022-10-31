@@ -99,8 +99,8 @@ Distance Culling removes blades that are outside of a certain distance.
 
 ## Performance Analysis
 
-**Your renderer handles varying numbers of grass blades**
+**Performance Measurements vs. Number of Blades**
 
-**The improvement you get by culling using each of the three culling tests**
+**Performance Measurements vs. Different Culling Methods**
 
 ## Bloopers! :)
