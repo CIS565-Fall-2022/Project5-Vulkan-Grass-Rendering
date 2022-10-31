@@ -2,7 +2,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 #define WORKGROUP_SIZE 32
-#define CULLING 0
+#define CULLING 1
 
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
@@ -192,12 +192,13 @@ void main() {
     vec3 camToBladeVec = v0 - cameraPos - up * dot(v0 - cameraPos, up);
 
     // orientation culling
-    float orientation = dot(camToBladeVec, bitangent);
+    float orientation = abs(dot(camToBladeVec, bitangent));
 
-    if (orientation > 0.9) {
+    //if (orientation > 0.9) {
         // do not render
-        return;
-    }
+        //return;
+    //}
+
 
     // view frustum culling
     vec3 m = 0.25 * v0 + 0.5 * v1 + 0.25 * v2;
@@ -205,10 +206,10 @@ void main() {
     float h = pprime.w * 0.95;
     bool v = inBounds(pprime.x, h) && inBounds(pprime.y, h);
 
-    if (!v) {
+    //if (!v) {
     // do not render
-        return;
-    }
+       //return;
+    //}
 
     // distance culling
     float projDist = length(camToBladeVec);
