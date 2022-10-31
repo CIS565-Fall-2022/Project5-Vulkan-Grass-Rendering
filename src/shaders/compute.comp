@@ -65,7 +65,7 @@ bool inBounds(vec3 value, float bounds) {
 
 bool viewFrustum(mat4 VP, vec3 p){
     vec4 p2 = VP * vec4(p, 1.f);
-    float h = p2.w + .1f;
+    float h = p2.w + .5f;
     return inBounds(p2.xyz, h);
 }
 
@@ -134,10 +134,6 @@ void main() {
 	// Note: to do this, you will need to use an atomic operation to read and update numBlades.vertexCount
 	// You want to write the visible blades to the buffer without write conflicts between threads
 
-#if ORIENTATION
-    if (abs(dot(normalize(v0 - CAM), vec3(-cos(direction), 0.f, sin(direction)))) > 0.9f) return;
-#endif
-
 #if VIEW_FRUSTUM
     mat4 VP = camera.proj * camera.view;
     if (!viewFrustum(VP, v0) && !viewFrustum(VP, v2) && !viewFrustum(VP, 0.25f * v0 + 0.5f * v1 + 0.25f * v2)) return;
@@ -145,10 +141,15 @@ void main() {
 
 #if DISTANCE
     float dproj = length(v0 - CAM - up * dot(v0 - CAM, up));
-    float dmax = 20;
+    float dmax = 30;
     uint n = 20;
     if (gl_GlobalInvocationID.x % n > floor(n * (1 - dproj / dmax))) return;
 #endif
+
+#if ORIENTATION
+    if (abs(dot(normalize(v0 - CAM), vec3(-cos(direction), 0.f, sin(direction)))) > 0.9f) return;
+#endif
+
 
     culledBlades.data[atomicAdd(numBlades.vertexCount, 1)] = blade;
 }
