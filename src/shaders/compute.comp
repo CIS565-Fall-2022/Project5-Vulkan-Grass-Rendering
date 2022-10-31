@@ -9,12 +9,12 @@
 #define GRAVITY -4.9
 
 #define ORIENTATION_CULLING 1
-#define VIEW_FRUSTUM_CULLING 0
+#define VIEW_FRUSTUM_CULLING 1
 #define DISTANCE_CULLING 1
 
-#define GRAVITY_FORCE 0
+#define GRAVITY_FORCE 1
 #define WIND_FORCE 1
-#define RESISTANCE_FORCE 0
+#define RESISTANCE_FORCE 1
 
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
@@ -182,7 +182,7 @@ void main() {
     #if VIEW_FRUSTUM_CULLING
     // View-frustum Culling 
     vec3 m = 0.25 * v0 + 0.5 * v1 + 0.25 * v2;
-    if (!inFrustum(v0) || !inFrustum(v2) || !inFrustum(m))
+    if (!inFrustum(v0) && !inFrustum(v2) && !inFrustum(m))
         return;
     #endif
 

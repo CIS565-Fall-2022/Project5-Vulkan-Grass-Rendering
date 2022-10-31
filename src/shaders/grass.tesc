@@ -1,7 +1,8 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-# define TESS_LEVEL 10
+# define TESS_LEVEL 20
+# define DYNAMIC_TESS 0
 
 layout(vertices = 1) out;
 
@@ -21,6 +22,23 @@ layout(set = 0, binding = 0) uniform CameraBufferObject {
     layout(location = 2) out vec4 out_v2[];
     layout(location = 3) out vec4 out_up[];
 
+    float getLOD(float d)
+    {
+        float LOD = 20.0;
+        if( d > 15.0)
+        {
+            LOD = 2.0;
+        }
+        else if (d > 10)
+        {
+            LOD = 5.0;
+        }
+        else if (d > 5)
+        {
+            LOD = 10.0;
+        }
+        return LOD;
+    }
 
 void main() {
 	// Don't move the origin location of the patch
@@ -34,10 +52,23 @@ void main() {
 
 
 	// TODO: Set level of tesselation
+    vec3 camera_pos = vec3(inverse(camera.view) * vec4(0.f, 0.f, 0.f, 1.f));
+    //vec3 view = in_v0[gl_InvocationID].xyz - camera_pos;
+    float dist = distance(camera_pos, in_v0[gl_InvocationID].xyz);
+
+    #if DYNAMIC_TESS
+     gl_TessLevelInner[0] = getLOD(dist);
+     gl_TessLevelInner[1] = getLOD(dist);
+     gl_TessLevelOuter[0] = getLOD(dist);
+     gl_TessLevelOuter[1] = getLOD(dist);
+     gl_TessLevelOuter[2] = getLOD(dist);
+     gl_TessLevelOuter[3] = getLOD(dist);
+     #else
      gl_TessLevelInner[0] = TESS_LEVEL;
      gl_TessLevelInner[1] = TESS_LEVEL;
      gl_TessLevelOuter[0] = TESS_LEVEL;
      gl_TessLevelOuter[1] = TESS_LEVEL;
      gl_TessLevelOuter[2] = TESS_LEVEL;
      gl_TessLevelOuter[3] = TESS_LEVEL;
+     #endif
 }

@@ -79,4 +79,5 @@ void main() {
     float intensity = diffuse_term + ambient_term;
 
     out_color =  vec4(mix(grass_color, grass_color2, fbm3D(in_pos)) * intensity, 1.0);
+    //out_color = vec4(1.0);
 }

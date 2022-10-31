@@ -774,6 +774,7 @@ void Renderer::CreateGrassPipeline() {
     rasterizer.depthBiasConstantFactor = 0.0f;
     rasterizer.depthBiasClamp = 0.0f;
     rasterizer.depthBiasSlopeFactor = 0.0f;
+    //rasterizer.polygonMode = VK_POLYGON_MODE_LINE;
 
     // Multisampling (turned off here)
     VkPipelineMultisampleStateCreateInfo multisampling = {};
