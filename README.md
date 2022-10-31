@@ -103,8 +103,12 @@ Distance Culling removes blades that are outside of a certain distance.
 
 ![](img/fpsNumBlades.png)
 
+Based on the measurement of FPS above, increasing the number of blades will decrease FPS, as expected.
+
 **Performance Measurements vs. Different Culling Methods over an increasing number of blades**
 
 ![](img/lastChart.png)
+
+This chart above is a comparison of performance between NO culling, Frustum Culling, Orientation Culling, Distance Culling, and ALL culling. However, the results are a little bit difficult to generalize. This is because each of the three culling methods work best for different scenarios/setups. For example, Frustum culling works best when you are really zoomed in on a patch of few blades. Orientation culling can be more accurately understood by the graph above since all the grass blades are oriented randomly. Distance culling works best when you can compare the results between being far away from the scene vs. being close up. However, it's easy to see from above that having ALL culling turned on is generally better than having No Culling at all.
 
 ## Bloopers! :)
