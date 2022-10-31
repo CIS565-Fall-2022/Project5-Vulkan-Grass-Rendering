@@ -27,6 +27,11 @@ Finally I add force and culling, the following GIF is my final result. And becau
 
 ![](img/result.gif)
 
+Here are some effect of culling. The parameters are specialized to show the effect clearly.
+| distance culling | view frustum culling | orientation culling |
+|---|---|---|
+|![](img/distance.gif)|![](img/view.gif)|![](img/orientation.gif)|
+
 ## Performance Analysis
 
 ![](img/graph.png)
