@@ -21,7 +21,6 @@ struct Blade {
     vec4 up;
 };
 
-
 // bindings for
 // 1. Store the input blades
 // 2. Write out the culled blades
@@ -46,6 +45,22 @@ bool inBounds(float value, float bounds) {
     return (value >= -bounds) && (value <= bounds);
 }
 
+vec3 vec3Noise(vec3 v0, float time) { // noise funcn
+	float period = 0.7;
+	float magnitude = 8.0;
+	float windvar = 0.3; // wind variance 
+	return vec3(magnitude * (1 + sin(period * (windvar * v0.x + time))),
+				0.0,
+				(1 + sin(period * (v0.z + time))));
+}
+
+bool viewFrustumTest(vec3 p, float toleranceRatio) {
+	vec4 pDevice = camera.proj * camera.view * vec4(p, 1.0);
+	float h = pDevice.w * toleranceRatio; // compared to addition, ratio seems to be easier to control
+	return inBounds(pDevice.x, h) && inBounds(pDevice.y, h); // && inBounds(pDevice.z, h);
+	// culling depth here is kinda scuffed w/ decreased tesselation levels + distance culling 
+}
+
 void main() {
 	// Reset the number of blades to 0
 	if (gl_GlobalInvocationID.x == 0) { // .x corresponds 0 to NUM_BLADES based on dispatch in Renderer.cpp
@@ -53,15 +68,90 @@ void main() {
 	}
 	barrier(); // Wait till all threads reach this point
 
-    // TODO: Apply forces on every blade and update the vertices in the buffer
+	vec3 v0 = inputBlades[gl_GlobalInvocationID.x].v0.xyz;
+    vec3 v1 = inputBlades[gl_GlobalInvocationID.x].v1.xyz;
+    vec3 v2 = inputBlades[gl_GlobalInvocationID.x].v2.xyz;
+	vec3 up = inputBlades[gl_GlobalInvocationID.x].up.xyz;
 
-	// TODO: Cull blades that are too far away or not in the camera frustum and write them
-	// to the culled blades buffer
+    float angle		= inputBlades[gl_GlobalInvocationID.x].v0.w;
+	float height	= inputBlades[gl_GlobalInvocationID.x].v1.w;
+    float width		= inputBlades[gl_GlobalInvocationID.x].v2.w;
+	float stiffness = inputBlades[gl_GlobalInvocationID.x].up.w;
 
-	culled[gl_GlobalInvocationID.x] = inputBlades[gl_GlobalInvocationID.x];
+	// gravity
+	vec4 gravity = vec4(0, -1, 0, 9.81); // xyz dir, w magnitude
 
-	// Note: to do this, you will need to use an atomic operation to read and update numBlades.vertexCount
-	// You want to write the visible blades to the buffer without write conflicts between threads
+	vec3 bitangent = vec3(-cos(angle), 0, sin(angle));
+	vec3 frontDirNorm = normalize(cross(bitangent, up)); // reverse?
+	vec3 environGravity = normalize(gravity.xyz) * gravity.w;
+	vec3 frontGravity = 0.25 * length(environGravity) * frontDirNorm;
 
+	vec3 totalGravity = frontGravity + environGravity;
+	// end gravity
+
+	// eqn 3 - ignore strength?
+	vec3 recoveryForce = (v0 + height * up - v2) * stiffness; 
+
+	//wind - dirAlignment for fd, straightness ratio for fr
+	vec3 wind = vec3Noise(v0, totalTime);
+	float dirAlignment = 1 - abs(dot(normalize(wind), normalize(v2 - v0)));
+	float straightnessRatio = dot(v2 - v0, up) / height;
+	float windAlignment = dirAlignment * straightnessRatio;
+	vec3 windForce = wind * windAlignment;
+	//end wind
+
+    // Apply forces on every blade and update the vertices in the buffer
+	v2 += (totalGravity + recoveryForce + windForce) * deltaTime;
+
+	// state validation and updating inputBlade
+	v2 = v2 - up * min(dot(up, v2 - v0), 0);
+	float lProj = length(v2 - v0 - up * dot(v2 - v0, up));
+	v1 = v0 + height * up * max(1 - lProj / height, 0.05 * max(lProj / height, 1.0));
+
+	float L1 = distance(v2, v0);
+	float L2 = distance(v1, v0) + distance(v2, v1);
+	float L = (2.0 * L1 + L2) / 3.0; // eqn 12 in the text; we have degree 2 Bezier so L2*1 = L2
+
+	float r = height / L;
+	inputBlades[gl_GlobalInvocationID.x].v1.xyz = v0 + r * (v1 - v0);
+	inputBlades[gl_GlobalInvocationID.x].v2.xyz = inputBlades[gl_GlobalInvocationID.x].v1.xyz + r * (v2 - v1);
+	// end state validation
+
+	// Cull blades
+//	v0 = inputBlades[gl_GlobalInvocationID.x].v0.xyz;
+//	v1 = inputBlades[gl_GlobalInvocationID.x].v1.xyz;
+//	v2 = inputBlades[gl_GlobalInvocationID.x].v2.xyz;
+//	// orientation culling
+//	float ORIENTATION_CULL_THRESH = 0.9; //lower = more aggressively cullled
+//	vec3 camPos = inverse(camera.view)[3].xyz; //check matrix transform ? think its correct
+//	vec3 camToBlade = v0 - camPos;
+//	vec3 planarViewDir = camToBlade - up * dot(camToBlade, up); // eqn 19, presuming up is normal of plane
+//	if (abs(dot(normalize(planarViewDir), normalize(bitangent))) > ORIENTATION_CULL_THRESH) {
+//		return;
+//	}
+//	// end orientation culling
+//
+//	// view-frustum culling
+//	float TOLERANCE = 0.99; // the lower the tolerance, the more the edges are culled
+//	vec3 m = 0.25 * v0 + 0.5 * v1 + 0.25 * v2;
+//	if (!viewFrustumTest(v0, TOLERANCE) &&
+//		!viewFrustumTest(v2, TOLERANCE) &&
+//		!viewFrustumTest(m, TOLERANCE)) {
+//		return;
+//	}
+//	// end view-frustum culling
+//
+//	// distance culling
+//	int NUM_BUCKETS = 10;
+//	float MAX_DISTANCE = 40.0;
+//	// eqn 20 - paper seems to have flipped sign typo??
+//	if (mod(gl_GlobalInvocationID.x, NUM_BUCKETS) >=
+//		floor(NUM_BUCKETS * (1 - length(camToBlade) / MAX_DISTANCE))) {
+//		return;
+//	}
+//	// end distance culling
+
+	//culled[atomicAdd(numBlades.vertexCount, 1)] = inputBlades[gl_GlobalInvocationID.x];
 	atomicAdd(numBlades.vertexCount, 1);
+	culled[gl_GlobalInvocationID.x] = inputBlades[gl_GlobalInvocationID.x];
 }

@@ -66,8 +66,10 @@ namespace {
 }
 
 int main() {
+    int width = 1020;
+    int height = 720;
     static constexpr char* applicationName = "Vulkan Grass Rendering";
-    InitializeWindow(640, 480, applicationName);
+    InitializeWindow(width, height, applicationName);
 
     unsigned int glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -90,7 +92,7 @@ int main() {
 
     swapChain = device->CreateSwapChain(surface, 5);
 
-    camera = new Camera(device, 640.f / 480.f);
+    camera = new Camera(device, (float)width / (float)height);
 
     VkCommandPoolCreateInfo transferPoolInfo = {};
     transferPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -149,12 +151,13 @@ int main() {
         renderer->Frame();
     }
 
-    vkDeviceWaitIdle(device->GetVkDevice());
-    vkDestroyImage(device->GetVkDevice(), grassImage, nullptr);
-    vkFreeMemory(device->GetVkDevice(), grassImageMemory, nullptr);
 
+    vkDeviceWaitIdle(device->GetVkDevice());
     // from ed discusoin, suppress validation layer error on close main window
     vkDestroySurfaceKHR(instance->GetVkInstance(), surface, nullptr);
+
+    vkDestroyImage(device->GetVkDevice(), grassImage, nullptr);
+    vkFreeMemory(device->GetVkDevice(), grassImageMemory, nullptr);
 
     delete scene;
     delete plane;
