@@ -27,7 +27,7 @@ void main() {
     // De Casteljau¡¯s algorithm
 
     // bitangent
-    vec3 t1 = vec3(-cos(v0[0].w), 0.f, sin(v0[0].w));
+    vec3 t1 = vec3(cos(v0[0].w), 0.f, sin(v0[0].w));
 
     vec3 a = vec3(v0[0] + v * (v1[0] - v0[0]));
     vec3 b = vec3(v1[0] + v * (v2[0] - v1[0]));

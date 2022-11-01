@@ -375,7 +375,7 @@ void Renderer::CreateGrassDescriptorSets() {
 
     std::vector<VkWriteDescriptorSet> descriptorWrites(grassDescriptorSets.size());
 
-    for (size_t i = 0; i < scene->GetBlades().size(); ++i) {
+    for (uint32_t i = 0; i < scene->GetBlades().size(); ++i) {
         VkDescriptorBufferInfo grassBufferInfo{};
         grassBufferInfo.buffer = scene->GetBlades()[i]->GetModelBuffer();
         grassBufferInfo.offset = 0;
@@ -462,7 +462,7 @@ void Renderer::CreateComputeDescriptorSets() {
         descriptorWrites[3 * i + 0].dstSet = computeDescriptorSets[i];
         descriptorWrites[3 * i + 0].dstBinding = 0;
         descriptorWrites[3 * i + 0].dstArrayElement = 0;
-        descriptorWrites[3 * i + 0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrites[3 * i + 0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         descriptorWrites[3 * i + 0].descriptorCount = 1;
         descriptorWrites[3 * i + 0].pBufferInfo = &bladesBufferInfo;
         descriptorWrites[3 * i + 0].pImageInfo = nullptr;
@@ -477,7 +477,7 @@ void Renderer::CreateComputeDescriptorSets() {
         descriptorWrites[3 * i + 1].dstSet = computeDescriptorSets[i];
         descriptorWrites[3 * i + 1].dstBinding = 1;
         descriptorWrites[3 * i + 1].dstArrayElement = 0;
-        descriptorWrites[3 * i + 1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrites[3 * i + 1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         descriptorWrites[3 * i + 1].descriptorCount = 1;
         descriptorWrites[3 * i + 1].pBufferInfo = &culledBladesBufferInfo;
         descriptorWrites[3 * i + 1].pImageInfo = nullptr;
@@ -492,7 +492,7 @@ void Renderer::CreateComputeDescriptorSets() {
         descriptorWrites[3 * i + 2].dstSet = computeDescriptorSets[i];
         descriptorWrites[3 * i + 2].dstBinding = 2;
         descriptorWrites[3 * i + 2].dstArrayElement = 0;
-        descriptorWrites[3 * i + 2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrites[3 * i + 2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         descriptorWrites[3 * i + 2].descriptorCount = 1;
         descriptorWrites[3 * i + 2].pBufferInfo = &numBladesBufferInfo;
         descriptorWrites[3 * i + 2].pImageInfo = nullptr;
@@ -943,7 +943,7 @@ void Renderer::CreateFrameResources() {
     
     // CREATE FRAMEBUFFERS
     framebuffers.resize(swapChain->GetCount());
-    for (size_t i = 0; i < swapChain->GetCount(); i++) {
+    for (uint32_t i = 0; i < swapChain->GetCount(); i++) {
         std::vector<VkImageView> attachments = {
             imageViews[i],
             depthImageView
@@ -966,7 +966,7 @@ void Renderer::CreateFrameResources() {
 }
 
 void Renderer::DestroyFrameResources() {
-    for (size_t i = 0; i < imageViews.size(); i++) {
+    for (uint32_t i = 0; i < imageViews.size(); i++) {
         vkDestroyImageView(logicalDevice, imageViews[i], nullptr);
     }
 
@@ -974,7 +974,7 @@ void Renderer::DestroyFrameResources() {
     vkFreeMemory(logicalDevice, depthImageMemory, nullptr);
     vkDestroyImage(logicalDevice, depthImage, nullptr);
 
-    for (size_t i = 0; i < framebuffers.size(); i++) {
+    for (uint32_t i = 0; i < framebuffers.size(); i++) {
         vkDestroyFramebuffer(logicalDevice, framebuffers[i], nullptr);
     }
 }
@@ -1025,7 +1025,7 @@ void Renderer::RecordComputeCommandBuffer() {
     vkCmdBindDescriptorSets(computeCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipelineLayout, 1, 1, &timeDescriptorSet, 0, nullptr);
 
     // TODO: For each group of blades bind its descriptor set and dispatch
-    for (size_t i = 0; i < scene->GetBlades().size(); ++i) {
+    for (uint32_t i = 0; i < scene->GetBlades().size(); ++i) {
         vkCmdBindDescriptorSets(computeCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipelineLayout, 2, 1, &computeDescriptorSets[i], 0, nullptr);
         vkCmdDispatch(computeCommandBuffer, static_cast<uint32_t>(NUM_BLADES / WORKGROUP_SIZE), 1, 1);
     }
@@ -1051,7 +1051,7 @@ void Renderer::RecordCommandBuffers() {
     }
 
     // Start command buffer recording
-    for (size_t i = 0; i < commandBuffers.size(); i++) {
+    for (uint32_t i = 0; i < commandBuffers.size(); i++) {
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
