@@ -72,9 +72,18 @@ If the grass blade is very far from the camera, there is no need to generate a h
 
 # <a name="performance">Performance Analysis</a>
 ### Varying Number of Grass Blades
+**How the renderer handles varying numbers of grass blades**   
+As my data shows, the performance (measured in frame rate) is linearly proportional to the number of grass blades. Everytime the number of grass blades doubles, the frame rate is roughly halved.    
+The following chart is generated with a constant tesselation level of 20 for each blade. Since the camera position will also affect how many grass blades will be rendered, all the tests used the default camera position.    
 ![c1](img/chart1.png)
 
 ### Improvements with Culling
+**The improvements by culling using each of the three culling tests**   
+The view-frustum culling gives a small performance boost, which is as expected, since only a small number of blades on the edge of the image will be culled.   
+The distance culling gives a better performance boost. However, this result varies on the maximum distance used (30 in this case). With a smaller max distance, more blades will be culled and a better performance is expected (at the cost of possibly worse visual result).   
+The dynamic tesselation level doubles the performance! This makes sense, as the grass blades further away only have 1/2, 1/4, or even 1/10 of the polygons of the front blades. Since most grass blades on the back will be occuluded, and we can only see their parts, this method gives a huge performance boost at the cost of very little (non-perceivable) visual downgrade.   
+The orientation culling gives the most performance boost, as it quadruples the frame rate. This is also expected, since at least half of the blades will be facing left or right. Because we will most likely not see these blades any way, this is also a great method with hugh performance boost and very little visual performance cost.   
+With all the culling methods turned on, the frame rate is almost 12 times the original. The culling methods truly achive the performance boost purpose with small cost on the visual result.      
 ![c2](img/chart2.png) 
 
 # <a name="reference">Refrence</a>
