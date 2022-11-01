@@ -89,3 +89,10 @@ If all three points are outside of the view-frustum, we will cull the grass blad
 
 Similarly to orientation culling, we can end up with grass blades that at large distances are smaller than the size of a pixel. This could lead to additional artifacts in our renders. In this case, we can cull grass blades as a function of their distance from the camera.
 
+## Performance Analysis
+
+![](img/performance.png)
+
+As we can see in the above image, our average frame per second decrease as our num of blades increase. 
+For the 3 different culling methods, they all contribute to our performance. When I tested the three different culling methods, I kept the viewing angle of the camera and the distance from the lawn constant. Based on the results, the distance culling performs best (at this point, the distance between the camera and the lawn made the grass on the lawn only half culled. If we move the camera closer to the lawn so that more of the grass is rendered, performance drops. Conversely, if the camera is moved away from the lawn, performance improves), while directional culling and view culling have similar performance improvements (with directional culling being slightly better).
+
