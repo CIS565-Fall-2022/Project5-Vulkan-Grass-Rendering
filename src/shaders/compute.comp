@@ -49,7 +49,7 @@ bool inBounds(float value, float bounds) {
 }
 
 bool insideViewFrustum(vec4 point, mat4 vp){
-    float tolerance = 0.05f;
+    float tolerance = 1.0f;
 
     vec4 point_ = vp * point;
 
@@ -57,6 +57,8 @@ bool insideViewFrustum(vec4 point, mat4 vp){
 
     return inBounds(point_.x, h) && inBounds(point_.y, h) && inBounds(point_.z, h);
 }
+
+float hash(float n) { return fract(sin(n) * 125.54); }
 
 vec3 random3(vec3 c) {
 	float j = 4096.0*sin(dot(c,vec3(17.0, 59.4, 15.0)));
@@ -75,6 +77,8 @@ vec3 hash3( vec2 p ){
 				   dot(p,vec2(419.2,371.9)) );
 	return fract(sin(q)*43758.5453);
 }
+
+float hash2(vec2 p) { return fract(1e4 * sin(17.0 * p.x + p.y * 0.1) * (0.1 + abs(sin(p.y * 13.0 + p.x)))); }
 
 void main() {
 	// Reset the number of blades to 0
@@ -100,10 +104,10 @@ void main() {
   // TODO: Apply forces on every blade and update the vertices in the buffer
   
   // Gravity 
-  vec4 D = vec4(0.f, -1.f, 0.f, 9.8f);
+  vec4 D = vec4(0.f, -1.f, 0.f, 5.f);
   vec3 gE = normalize(D.xyz) * D.w;
   vec3 f = normalize(cross(t1, up));
-  vec3 gF = 0.25f * length(gE) * f;
+  vec3 gF = 0.75f * length(gE) * f;
 
   vec3 gravity = gE + gF;
 
@@ -112,7 +116,8 @@ void main() {
   vec3 recovery = (iv2 - v2) * stiffness;
 
   // Wind
-  vec3 wind = hash3(v0.xz) * sin(totalTime * 1.5) * 3;
+  vec3 wind = hash3(v0.xz) * cos(totalTime + int((v0.x + v0.z) / 7.f)) * 6 + hash2(v0.xz) * 2;
+  wind.y = 0;
 
   float f_d = 1 - abs(dot((normalize(wind)), normalize(v2 - v0)));
   float f_r = dot(v2 - v0, up) / height;
@@ -175,7 +180,7 @@ void main() {
   float d_proj = length(viewDir);
 
   int levels = 10;
-  float d_max = 25.f;
+  float d_max = 40.f;
   bool isCulled = (gl_GlobalInvocationID.x % levels) > (floor(levels * (1.f - d_proj / d_max)));
   if(isCulled){
       return;

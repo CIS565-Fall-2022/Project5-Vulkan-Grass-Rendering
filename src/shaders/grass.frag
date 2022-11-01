@@ -22,13 +22,13 @@ void main() {
     float t = (height - 1.3f) / 2.5f;
     vec3 color = mix(green, darkGreen, t);
 
-    vec3 lightPos = vec3(50.0, 100.0, 0.0);
+    vec3 lightPos = vec3(10.0, 50.0, 0.0);
 
     // Diffuse Lighting
-    vec3 l = normalize(lightPos - position);
-    float lambert = max(dot(l, normalize(normal)), 0.0);
+    vec3 lightDir = normalize(lightPos - position);
+    float lambert = max(dot(lightDir, normalize(normal)), 0.0);
 
-    vec3 result = color + lambert * vec3(0.2);
+    vec3 result = color + lambert * vec3(0.3);
 
     outColor = vec4(result, 1.0);
 }

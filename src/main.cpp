@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Scene.h"
 #include "Image.h"
+#include <iostream>
 
 Device* device;
 SwapChain* swapChain;
@@ -67,7 +68,7 @@ namespace {
 
 int main() {
     static constexpr char* applicationName = "Vulkan Grass Rendering";
-    InitializeWindow(640, 480, applicationName);
+    InitializeWindow(1600, 900, applicationName);
 
     unsigned int glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -90,7 +91,7 @@ int main() {
 
     swapChain = device->CreateSwapChain(surface, 5);
 
-    camera = new Camera(device, 640.f / 480.f);
+    camera = new Camera(device, 1600.f / 900.f);
 
     VkCommandPoolCreateInfo transferPoolInfo = {};
     transferPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -116,7 +117,7 @@ int main() {
         grassImageMemory
     );
 
-    float planeDim = 15.f;
+    float planeDim = 30.f;
     float halfWidth = planeDim * 0.5f;
     Model* plane = new Model(device, transferCommandPool,
         {
@@ -143,10 +144,39 @@ int main() {
     glfwSetMouseButtonCallback(GetGLFWWindow(), mouseDownCallback);
     glfwSetCursorPosCallback(GetGLFWWindow(), mouseMoveCallback);
 
+    double fps = 0;
+    double timebase = 0;
+    int frame = 0;
+    std::vector<double> fpsList;
+
     while (!ShouldQuit()) {
         glfwPollEvents();
+
+        frame++;
+        double time = glfwGetTime();
+
+        if (time - timebase > 1.0) {
+          fps = frame / (time - timebase);
+          timebase = time;
+          frame = 0;
+
+          fpsList.push_back(fps);
+        }
+
         scene->UpdateTime();
         renderer->Frame();
+
+        int numIgnore = 10;
+        if (fpsList.size() > numIgnore) {
+          std::vector<double> newFpsList(fpsList.begin() + numIgnore, fpsList.end());
+
+          double averageFps = 0;
+          for (auto fps : newFpsList)
+            averageFps += fps;
+          averageFps /= newFpsList.size();
+
+          std::cout << "Average FPS: " << averageFps << std::endl;
+        }
     }
 
     vkDeviceWaitIdle(device->GetVkDevice());
