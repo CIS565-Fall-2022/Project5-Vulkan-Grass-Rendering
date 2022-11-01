@@ -39,3 +39,10 @@ One of the main goal of this project is to also learn about the pipeline of Vulk
 ### Extra Feature - Dynamic Levels of Details
 ![lod](img/LOD.png)
 
+# <a name="performance">Performance Analysis</a>
+### Varying Number of Grass Blades
+![c1](img/chart1.png)
+
+### Improvements with Culling
+![c2](img/chart2.png) 
+

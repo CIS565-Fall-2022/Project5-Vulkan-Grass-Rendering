@@ -2,7 +2,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 # define TESS_LEVEL 20
-# define DYNAMIC_TESS 0
+# define DYNAMIC_TESS 1
 
 layout(vertices = 1) out;
 
