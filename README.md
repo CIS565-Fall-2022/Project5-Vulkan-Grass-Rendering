@@ -61,3 +61,13 @@ The final test culls the blades according to their distance toward the camera.
 ![](./img/disCull.gif)
 
 # Performance Analysis 
+
+## Number of Blades Analysis
+As expected, FPS decreases when the number of blades increases. Also, by applying culling, the simulation get better performance for FPS, and culling will not affect most of the visual result.
+
+![](./img/Number%20of%20Grass%20Blades%20vs%20FPS.png)
+
+## Culling Comparison
+To understand the effect of the three culling implementations, each culling is applied to 65K blades to test the FPS performance. We can see that orientation and view-frustum culling will get the similar performance, and distance culling will get a sightly better result. 
+
+![](./img/Each%20Type%20of%20Culling%20vs%20FPS.png)
