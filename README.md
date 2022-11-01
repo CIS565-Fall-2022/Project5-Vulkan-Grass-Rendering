@@ -59,6 +59,6 @@ The framerates when rendering relatively larger number of blades are proportiona
 For the default camera angle and the grass blades number of 2^15, the most effcient culling method is the orientation culling and the least effcient one is the view-frustrum method. The result is expected. For the view-frustrum method with the default camera angle, not a lot of blades are outside of the camera, so it produces a slight boost on the fps. For the orientation method, a lot of blades are culled because the camera contains a huge portion of the blades in the scene and they are culled based on their orientations towards the camera.
 
 
-## Default Camera Angle
+### Default Camera Angle
 
 ![](img/default.png)
