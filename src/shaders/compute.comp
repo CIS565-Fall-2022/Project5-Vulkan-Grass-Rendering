@@ -6,13 +6,12 @@
 #define ORIENTATION_CULL true
 #define VIEW_FRUSTUM_CULL true
 #define DISTANCE_CULL true
-#define DISTANCEMAX 15
-#define DISTANCECULLINGLEVEL 10
-#define WINDSTR 5.0
+#define DISTANCEMAX 20
+#define DISTANCECULLINGLEVEL 15
+#define WINDSTR 1
 
 #define D vec4(0, -1.0, 0, 9.81)
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
-
 layout(set = 0, binding = 0) uniform CameraBufferObject {
     mat4 view;
     mat4 proj;
@@ -47,6 +46,7 @@ float noise(vec2 x) {
 	return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
 }
 
+
 vec3 windFunc(float t, vec3 v0){
     float n = noise(v0.xz);
     return WINDSTR*vec3(sin(t)+n, 0, sin(t)+n);
@@ -78,7 +78,7 @@ bool inBounds(vec3 value, float bounds) {
 }
 
 bool inFrustum(vec3 p) {
-    float t = 0.01f;
+    float t = 0.02f;
     vec4 pNorm = camera.proj * camera.view * vec4(p, 1.0);
     float h = pNorm.w + t;
     return inBounds(pNorm.xyz, h);
@@ -122,7 +122,7 @@ void main() {
 
 
     //total force
-    vec3 tv2 = (f + r1 + w) * time.deltaTime;
+    vec3 tv2 = (g + r1 + w) * time.deltaTime;
     v2 += tv2;
 
     //state validation
