@@ -8,6 +8,7 @@
 
 ## Overview
 ![](img/title.PNG)
+
 In this project I implemented the grass rendering techniques in the paper [Responsive Real-Time Grass Rendering for General 3D Scenes](https://www.cg.tuwien.ac.at/research/publications/2017/JAHRMANN-2017-RRTG/JAHRMANN-2017-RRTG-draft.pdf) using Vulkan framework.<br>
 The main components of this project includes:
 - [Grass Simulation](#grass-simulation)
