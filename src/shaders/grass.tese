@@ -15,6 +15,8 @@ layout (location = 2) in vec3 v2te[];
 layout (location = 3) in vec3 upte[];
 layout (location = 4) in float wte[];
 
+layout (location = 0) out vec3 norm;
+
 void main() {
     float u = gl_TessCoord.x;
     float v = gl_TessCoord.y;
@@ -31,6 +33,7 @@ void main() {
     vec3 a = v0 + v * (v1 - v0);
     vec3 b = v1 + v * (v2 - v1);
     vec3 c = a + v * (b - a);
+    //up is bitangent...
     vec3 c0 = c - w * up;
     vec3 c1 = c + w * up;
     float t = u + .5 * v - u * v;
@@ -40,4 +43,7 @@ void main() {
     //p = (1-t) * v0 + t * v2;
     gl_Position = camera.proj * camera.view * vec4(p, 1.0);
     //gl_Position = gl_Position + vec4(u, v, 0.0, 0.0);
+
+    vec3 t0 = b - a;
+    norm = normalize(cross(t0, up));
 }

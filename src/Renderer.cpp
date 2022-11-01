@@ -1020,9 +1020,9 @@ void Renderer::RecordComputeCommandBuffer() {
     // TODO: For each group of blades bind its descriptor set and dispatch
     for (int i = 0; i < computeDescriptorSets.size(); i++) {
         vkCmdBindDescriptorSets(computeCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipelineLayout, 2+i, 1, &computeDescriptorSets[i], 0, nullptr);
-        
+        vkCmdDispatch(computeCommandBuffer, NUM_BLADES / 32, 1, 1);
     }
-    vkCmdDispatch(computeCommandBuffer, computeDescriptorSets.size(), 1, 1);
+    
 
     // ~ End recording ~
     if (vkEndCommandBuffer(computeCommandBuffer) != VK_SUCCESS) {
