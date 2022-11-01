@@ -16,9 +16,12 @@ This project uses Vulkan to simulate grass blades, following this [paper](https:
 ## Progression
 
 The biggest challenge was generating the grass blades without any sort of simulation. Here is the result of that. 
+<br/>
+
 ![](img/noforce.gif)
 ### Forces
 Next, the windforce was applied to each of the blades based on the position of the base of the grass. 
+<br/>
 ![](img/w.gif)
 <br/>
 Afterwards, the force of gravity is applied. Since there is nothing to push the grass blades back up, all control points are pushed to the ground.
@@ -26,6 +29,7 @@ Afterwards, the force of gravity is applied. Since there is nothing to push the 
 ![](img/wg.gif)
 <br/>
 Last for the simulation, a recovery force is added to counteract the gravity and wind, pushing the grass blades to its neutral position.
+<br/>
 ![](img/wgr.gif)
 <br/>
 ### Culling
@@ -47,14 +51,17 @@ Distance culling removes all blades that are sufficiently far from the camera, a
 
 <br/>
 This first chart indicates the frame rate of the simulation while simulation varying number of blades. The increase in blades is exponential, so the final value tested was 2 to the power of 20, which is over a million blades of grass simulated. 
+<br/>
 
 ![](img/c1.png)
 
+<br/>
 At lower blade counts, culling has little effect on performance, but at higher blade counts the performance increase is drastic. Doubling the performance in some cases. 
 <br/>
 
 <br/>
 This second and final chart, shows the frame rate using different culling methods. The scene that was tested had two to the power of 20 blades in it. What should be noted is that many of the culling methods depend on the position of the camera. For example, pulling the camera very far back would activate the distance culling, but not the frustrum culling. All these measurements were taken with the entire scene visible. 
+<br/>
 
 ![](img/c2.png)
 <br/>
