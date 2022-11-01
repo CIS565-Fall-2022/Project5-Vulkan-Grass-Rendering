@@ -10,6 +10,8 @@ Device* device;
 SwapChain* swapChain;
 Renderer* renderer;
 Camera* camera;
+#include <sstream>
+
 
 namespace {
     void resizeCallback(GLFWwindow* window, int width, int height) {
@@ -67,7 +69,7 @@ namespace {
 
 int main() {
     static constexpr char* applicationName = "Vulkan Grass Rendering";
-    InitializeWindow(640, 480, applicationName);
+    InitializeWindow(1280, 960, applicationName);
 
     unsigned int glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -139,15 +141,36 @@ int main() {
 
     renderer = new Renderer(device, swapChain, scene, camera);
 
+    GLFWwindow* window = GetGLFWWindow();
     glfwSetWindowSizeCallback(GetGLFWWindow(), resizeCallback);
     glfwSetMouseButtonCallback(GetGLFWWindow(), mouseDownCallback);
     glfwSetCursorPosCallback(GetGLFWWindow(), mouseMoveCallback);
+
+    float fps = 0.0;
+    float frame_time = 0.0;
+    int frame = 0;
 
     while (!ShouldQuit()) {
         glfwPollEvents();
         scene->UpdateTime();
         renderer->Frame();
+        frame++;
+        float time = glfwGetTime();
+        if (time - frame_time > 1.0)
+        {
+            fps = frame / (time - frame_time);
+            frame_time = time;
+            frame = 0;
+        }
+
+        std::ostringstream ss;
+        ss << "[";
+        ss.precision(2);
+        ss << std::fixed << fps;
+        ss << " fps] " << applicationName;
+        glfwSetWindowTitle(window, ss.str().c_str());
     }
+
 
     vkDeviceWaitIdle(device->GetVkDevice());
 
@@ -161,6 +184,7 @@ int main() {
     delete renderer;
     delete swapChain;
     delete device;
+    vkDestroySurfaceKHR(instance->GetVkInstance(), surface, nullptr);
     delete instance;
     DestroyWindow();
     return 0;
