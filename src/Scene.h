@@ -27,7 +27,8 @@ private:
     std::vector<Blades*> blades;
 
 high_resolution_clock::time_point startTime = high_resolution_clock::now();
-
+float usedTime = 0.f;
+float frames = 0.f;
 public:
     Scene() = delete;
     Scene(Device* device);

@@ -17,45 +17,43 @@ layout(location = 3) in vec3 tcUpin[];
 
 layout(location = 0) out vec4 teV0out[];
 layout(location = 1) out vec4 teV1out[];
+layout(location = 2) out vec4 teV2out[];
 
 
-
-
-layout(location = 2) out vec4 teV2[];
 void main() {
 	// Don't move the origin location of the patch
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 
 	// TODO: Write any shader outputs
-    vec3 camPos = vec3(camera.view[3][0], camera.view[3][1], camera.view[3][2]);
+    teV0out[gl_InvocationID] = tcV0in[gl_InvocationID]; 
+    teV1out[gl_InvocationID] = tcV1in[gl_InvocationID]; 
+    teV2out[gl_InvocationID] = tcV2in[gl_InvocationID]; 
+
+	// TODO: Set level of tesselation
+    vec3 camPos = inverse(camera.view)[3].xyz;
+
     float z = length(tcV0in[gl_InvocationID].xyz - camPos);
 
-	int level;
+	int LOD;
 	if (z < 4.0)
-		level = 16;
+		LOD = 16;
 	else if (z < 8.0)
-		level = 12;
+		LOD = 12;
 	else if (z < 16.0)
-		level = 8;
+		LOD = 8;
 	else if (z < 32.0)
-		level = 4;
+		LOD = 4;
 	else
-		level = 2;
+		LOD = 1;
 
-    gl_TessLevelInner[0] = level;
-    gl_TessLevelInner[1] = level;
-    gl_TessLevelOuter[0] = level;
-    gl_TessLevelOuter[1] = level;
-    gl_TessLevelOuter[2] = level;
-    gl_TessLevelOuter[3] = level;
+    gl_TessLevelInner[0] = LOD;
+    gl_TessLevelInner[1] = LOD;
+
+    gl_TessLevelOuter[0] = LOD;
+    gl_TessLevelOuter[1] = LOD;
+    gl_TessLevelOuter[2] = LOD;
+    gl_TessLevelOuter[3] = LOD;
 
     // gl_InvocationID is 0 for all te
 
-	// TODO: Set level of tesselation
-    // gl_TessLevelInner[0] = ???
-    // gl_TessLevelInner[1] = ???
-    // gl_TessLevelOuter[0] = ???
-    // gl_TessLevelOuter[1] = ???
-    // gl_TessLevelOuter[2] = ???
-    // gl_TessLevelOuter[3] = ???
 }
