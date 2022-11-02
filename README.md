@@ -18,6 +18,9 @@ A Vulkan-based grass renderer was implemented in this project. I used methods di
 
 The simulation and rendering of the grass mainly includes the following parts: a vertex shader to transform Bezier control points, tessellation shaders to dynamically create the grass geometry from the Bezier curves, and a fragment shader to shade the grass blades.
 
+![](img/cover.gif)
+
+
 Features
 =============
 ### Blade Model
@@ -39,70 +42,104 @@ Last, in tessellation evaluation shader, we decide the position of these new ver
 
 After tessellation, these vertices are guaranteed to be assembled to the primitives we specify when creating the pipeline
 
-![](img/grass2.gif)
-
+### Wind Simulation
+The alignment of the blade towards the wind wave is developed following two ideas: First, a blade of grass that is standing in its straight position should be influenced more by the wind than a blade that is pushed to the ground. In addition, if the direction of the force caused by the wind is directed
+along the width of the blade, the influence should be less than if the direction of the wind is orthogonal to the blade. 
 
 Performance Analysis
 ============
 ### Distance Culling
 
+We can cull all the blades that are out of a distance to the camera. 
 
+![](img/distance_culling.gif)
 
+```cpp
+#if DIST_CULL
+	float dProj = length(v0 - eye_pos - up * dot((v0 - eye_pos), up));
+	uint n = 10;
+	if (mod(id, n) >= (n * (1 - dProj / dMax)))
+	   return;
+#endif
+```
 
 ### Frustum Culling
 
-We cull objects which are out of camera's frustum.
+We can cull objects which are out of camera's frustum. Note how the blades around edges of the screen are loaded.
+
+![](img/frustum_culling.gif)
 
 ```cpp
-vec4 ndc = camera.proj * camera.view * vec4(v0, 1);
-ndc /= (ndc.w+1.0);
-if (ndc.x > 1.0 || ndc.x < -1.0 || ndc.y > 1.0 || ndc.y < -1.0 || ndc.z > 1.0 || ndc.z < -1) return;
+#if VIEW_CULL
+	vec3 m = (1/4) * v0 * (1/2) * v1 * (1/4) * v2; // midpoint
+	if(!(inFrustum(v0) && inFrustum(v2) && inFrustum(m)))
+		 return;
+#endif
 ```
 
 
 ### Orientation Culling
 
-Since our grass is represented by a quad thus no thickness, a blade is hard to see if its orientation is almost parallel to the camera's. So we can cull them:
+We can further cull blades that are parallel to the camera. 
+
+![](img/orient_culling.gif)
 
 ```cpp
-vec3 camPos = vec3(camera.view[3][0], camera.view[3][1], camera.view[3][2]);
-if (abs(dot(fwd, normalize(v0-camPos))) > 0.9) return;
+#if ORIE_CULL
+	vec3 dirC = eye_pos - v0;
+	vec3 dirB = orient;
+	if (abs(dot(normalize(dirC), normalize(dirB))) >= 0.9)
+	   return;
+#endif
 ```
 
 ### Dynamic Tessellation Level
 
+We also added a dynamic tessellation level to the tessellation control shader to control the inner and outer levels.
 
-If a blade is far away it doesn't need a high tesselation level. So in the tesselation control shader we can adjust the tessellation level regarding distance:
+We can see from the gif below that the tessellation level changes as the camera goes away. 
+
+ ![](img/lod.gif)
+
+Here is a diagram of how tessellation works in Vulkan. 
+
+![](img/Tessellation.png)
+
 
 ```cpp
-int level;
+vec3 camPos = inverse(camera.view)[3].xyz;
+
+float z = length(tcV0in[gl_InvocationID].xyz - camPos);
+
+int LOD;
 if (z < 4.0)
-    level = 16;
+	LOD = 16;
 else if (z < 8.0)
-    level = 12;
+	LOD = 12;
 else if (z < 16.0)
-    level = 8;
+	LOD = 8;
 else if (z < 32.0)
-    level = 4;
+	LOD = 4;
 else
-    level = 2;
-gl_TessLevelInner[0] = level;
-gl_TessLevelInner[1] = level;
-gl_TessLevelOuter[0] = level;
-gl_TessLevelOuter[1] = level;
-gl_TessLevelOuter[2] = level;
-gl_TessLevelOuter[3] = level;
+	LOD = 1;
+
+gl_TessLevelInner[0] = LOD;
+gl_TessLevelInner[1] = LOD;
+
+gl_TessLevelOuter[0] = LOD;
+gl_TessLevelOuter[1] = LOD;
+gl_TessLevelOuter[2] = LOD;
+gl_TessLevelOuter[3] = LOD;
 ```
 
+### Analysis
+
+The final table of comparision can be seen from the figue below.
+
+ ![](img/table1.png) 
  
+We can see that as the number of blades increases, the rendering time increases almost linearly. However, if we enable the optimization methods, the rendering time could be significantly reduced. 
 
-| World Normal | Position |
-:-------:|:-------:
-|![](img/denoiser/normal.png)|![](img/denoiser/pos.png) |
-
-
-Bloopers
-===============
 
    
 Reference

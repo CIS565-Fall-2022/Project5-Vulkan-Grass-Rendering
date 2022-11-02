@@ -1,6 +1,8 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+#define LOD_ON 1;
+
 layout(vertices = 1) out;
 
 layout(set = 0, binding = 0) uniform CameraBufferObject {
@@ -30,30 +32,38 @@ void main() {
     teV2out[gl_InvocationID] = tcV2in[gl_InvocationID]; 
 
 	// TODO: Set level of tesselation
-    vec3 camPos = inverse(camera.view)[3].xyz;
+        vec3 camPos = inverse(camera.view)[3].xyz;
 
-    float z = length(tcV0in[gl_InvocationID].xyz - camPos);
+        float z = length(tcV0in[gl_InvocationID].xyz - camPos);
 
-	int LOD;
-	if (z < 4.0)
-		LOD = 16;
-	else if (z < 8.0)
-		LOD = 12;
-	else if (z < 16.0)
-		LOD = 8;
-	else if (z < 32.0)
-		LOD = 4;
-	else
-		LOD = 1;
+	    int LOD;
+	    if (z < 4.0)
+		    LOD = 16;
+	    else if (z < 8.0)
+		    LOD = 12;
+	    else if (z < 16.0)
+		    LOD = 8;
+	    else if (z < 32.0)
+		    LOD = 4;
+	    else
+		    LOD = 1;
 
-    gl_TessLevelInner[0] = LOD;
-    gl_TessLevelInner[1] = LOD;
+        gl_TessLevelInner[0] = LOD;
+        gl_TessLevelInner[1] = LOD;
 
-    gl_TessLevelOuter[0] = LOD;
-    gl_TessLevelOuter[1] = LOD;
-    gl_TessLevelOuter[2] = LOD;
-    gl_TessLevelOuter[3] = LOD;
+        gl_TessLevelOuter[0] = LOD;
+        gl_TessLevelOuter[1] = LOD;
+        gl_TessLevelOuter[2] = LOD;
+        gl_TessLevelOuter[3] = LOD;
 
+        // fixed LOD for test
+//        gl_TessLevelInner[0] = 4;
+//        gl_TessLevelInner[1] = 4;
+//
+//        gl_TessLevelOuter[0] = 4;
+//        gl_TessLevelOuter[1] = 4;
+//        gl_TessLevelOuter[2] = 4;
+//        gl_TessLevelOuter[3] = 4;
     // gl_InvocationID is 0 for all te
 
 }

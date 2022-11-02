@@ -7,9 +7,9 @@
 #define RECOVER_ON 1
 #define WIND_ON 1
 
-#define ORIE_CULL 1
-#define VIEW_CULL 1
-#define DIST_CULL 1
+#define ORIE_CULL 0
+#define DIST_CULL 0
+#define VIEW_CULL 0
 
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
@@ -90,7 +90,7 @@ void main() {
     vec3 up = b.up.xyz;
 
     float direction = b.v0.w;
-    float height = b.v1.w;
+    float h = b.v1.w;
     float width = b.v2.w;
     float stiffness = b.up.w;
     vec3 orient = vec3(cos(direction), 0, sin(direction)); 
@@ -107,7 +107,7 @@ void main() {
 
     // recovery
     #if RECOVER_ON
-        vec3 iv2 = v0 + up * height;
+        vec3 iv2 = v0 + up * h;
         vec3 recovery = (iv2 - v2) * stiffness;
     #else
         vec3 recovery = vec3(0,0,0);
@@ -116,7 +116,7 @@ void main() {
     // wind
     #if WIND_ON
         float windDirection = 1 - abs(dot(normalize(windFunc), normalize(v2 - v0)));
-        float windAlign = dot((v2 - v0), up) / height;
+        float windAlign = dot((v2 - v0), up) / h;
         vec3 wind = windFunc * windDirection * windAlign;
     #else
         vec3 wind = vec3(0,0,0);
@@ -126,14 +126,16 @@ void main() {
     vec3 totalForce = gravity + recovery + wind;
     v2 = v2 + totalForce * deltaTime; 
 
-    //state update
+    // state update
     v2 = v2 - up * min(dot(up, v2 - v0), 0); 
     float Lproj = length(v2 - v0 - up * dot(v2 - v0, up));
-    v1 = v0 + height * up * max(1 - Lproj / height, 0.05 * max(Lproj/height, 1));
+    v1 = v0 + h * up * max(1 - Lproj / h, 0.05 * max(Lproj/h, 1));
+    
     float L0 = length(v2 - v0);
     float L1 = length(v2 - v1) + length(v1 - v0);
     float L = (2 * L0 + (2 - 1) * L1) / (2 + 1);
-    float r = height / L;
+    float r = h / L;
+
     v1 = v0 + r * (v1 - v0);
     v2 = v1 + r * (v2 - v1);
 
