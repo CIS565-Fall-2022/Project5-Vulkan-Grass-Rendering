@@ -3,10 +3,16 @@ Vulkan Grass Rendering
 
 **University of Pennsylvania, CIS 565: GPU Programming and Architecture, Project 5**
 
-* (TODO) YOUR NAME HERE
-* Tested on: (TODO) Windows 22, i7-2222 @ 2.22GHz 22GB, GTX 222 222MB (Moore 2222 Lab)
+* Edward Zhang
+  * https://www.linkedin.com/in/edwardjczhang/
+  * https://zedward23.github.io/personal_Website/
+ 
+* Tested on: Windows 10 Home, i7-11800H @ 2.3GHz, 16.0GB, NVIDIA GeForce RTX 3060 Laptop GPU
 
-### (TODO: Your README)
+## Vulkan Grass Rendering 
 
-*DO NOT* leave the README to the last minute! It is a crucial part of the
-project, and we will not be able to grade you without a good README.
+![](img/grassWind.gif)
+![](img/FrustrumAndDistanceCulling.gif)
+![](img/orientCull.gif)
+![](img/Graph1.png)
+![](img/Graph2.png)
