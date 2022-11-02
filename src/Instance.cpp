@@ -40,7 +40,6 @@ namespace {
         return VK_FALSE;
     }
 }
-
 Instance::Instance(const char* applicationName, unsigned int additionalExtensionCount, const char** additionalExtensions) {
     // --- Specify details about our application ---
     VkApplicationInfo appInfo = {};
@@ -87,6 +86,11 @@ VkInstance Instance::GetVkInstance() {
 VkPhysicalDevice Instance::GetPhysicalDevice() {
     return physicalDevice;
 }
+
+const VkPhysicalDeviceProperties& Instance::GetPhysicalDeviceProperties() const {
+    return physicalDeviceProperties;
+}
+
 
 const VkSurfaceCapabilitiesKHR& Instance::GetSurfaceCapabilities() const {
     return surfaceCapabilities;
