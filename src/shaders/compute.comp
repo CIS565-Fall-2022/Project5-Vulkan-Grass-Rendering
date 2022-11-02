@@ -3,6 +3,8 @@
 
 #define WORKGROUP_SIZE 32
 #define CULL 1
+#define WIND 1
+#define RESIST 1
 
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
@@ -142,16 +144,25 @@ void main() {
     vec3 gravity = front + environmental;
 
     // recovery
-    vec3 v2_0 = v0 + bladeHeight * up;
-    vec3 recovery = (v2_0 - v2) * stiffness;
 
+    vec3 v2_0 = v0 + bladeHeight * up;
+#if RESIST
+    vec3 recovery = (v2_0 - v2) * stiffness;
+#else
+    vec3 recovery = vec3(0,0,0);
+#endif
     // wind
     vec3 windDir = fbm(v0, totalTime);
     float fd = 1 - length(dot(normalize(windDir), normalize(v2 - v0)));
     float fr = dot(normalize(v2 - v0), up) / bladeHeight;
     float windAlignment = 3 * fd * fr;
 
+#if WIND
     vec3 wind = windDir * windAlignment;
+#else 
+    vec3 wind = vec3(0,0,0);
+#endif
+
     vec3 deltaV2 = (gravity + recovery + wind) * deltaTime;
 
     v2 += deltaV2;
