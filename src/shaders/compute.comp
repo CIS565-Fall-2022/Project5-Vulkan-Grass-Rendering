@@ -4,6 +4,10 @@
 #define WORKGROUP_SIZE 32
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
+#define ORIENTATION_CULLING 1
+#define FRUSTUM_CULLING 1
+#define DISTANCE_CULLING 1
+
 layout(set = 0, binding = 0) uniform CameraBufferObject {
     mat4 view;
     mat4 proj;
@@ -48,6 +52,12 @@ layout(set = 2, binding = 2) buffer NumBlades {
 
 bool inBounds(float value, float bounds) {
     return (value >= -bounds) && (value <= bounds);
+}
+
+bool ptInBounds(vec3 p, float bounds){
+	return (p.x >= -bounds) && (p.x <= bounds)
+	&& (p.y >= -bounds) && (p.y <= bounds)
+	&& (p.z >= -bounds) && (p.z <= bounds);
 }
 
 void main() {
@@ -105,6 +115,7 @@ void main() {
 	// write new v1, v2 to the bladesBuffer
 	blade.v1.xyz = v1corr;
 	blade.v2.xyz = v2corr;
+
 	blades[gl_GlobalInvocationID.x] = blade;
 
 
@@ -113,13 +124,16 @@ void main() {
 	// Note: to do this, you will need to use an atomic operation to read and update numBlades.vertexCount
 	// You want to write the visible blades to the buffer without write conflicts between threads
 
+#if ORIENTATION_CULLING
 	// orientation culling
 	vec3 cameraForward = normalize(vec3(camera.view[0][2], camera.view[1][2], camera.view[2][2]));
 	float oriCondition = abs(dot(front, cameraForward));
 	if(oriCondition < 0.6){
 		return;
 	}
+#endif
 
+#if FRUSTUM_CULLING
 	// view-frustum culling
 	mat4 VP = camera.proj * camera.view;
     vec3 m = 0.25 * v0 + 0.5 * v1 + 0.25 * v2;
@@ -127,22 +141,25 @@ void main() {
 	vec4 v2NDC = VP * vec4(v2, 1.0);
 	vec4 mNDC = VP * vec4(m, 1.0);
 	float tolerance = 0.5;
-	bool v0IsInBounds = inBounds(v0NDC.x, v0NDC.w + tolerance);
-	bool v2IsInBounds = inBounds(v2NDC.x, v2NDC.w + tolerance);
-	bool mIsInBounds = inBounds(mNDC.x,mNDC.w + tolerance);
-	if(!v0IsInBounds || !v2IsInBounds || !mIsInBounds){
+	bool v0IsInBounds = ptInBounds(v0NDC.xyz, v0NDC.w + tolerance);
+	bool v2IsInBounds = ptInBounds(v2NDC.xyz, v2NDC.w + tolerance);
+	bool mIsInBounds = ptInBounds(mNDC.xyz,mNDC.w + tolerance);
+	if(!v0IsInBounds && !v2IsInBounds && !mIsInBounds){
 		return;
 	}
+#endif
 
+#if DISTANCE_CULLING
 	// distance culling
 	float dMax = 30.0;
 	int distanceN = 10;
 	//vec3 cameraPos = vec3(camera.view[3][0], camera.view[3][1], camera.view[3][2]) * -1.0;
-	vec3 cameraPos = vec3(inverse(camera.view)* vec4(0.f, 0.f, 0.f, 1.f)) * -1.0;
+	vec3 cameraPos = vec3(inverse(camera.view)* vec4(0.f, 0.f, 0.f, 1.f));
 	float dproj = length(v0 - cameraPos - up * (dot(v0 - cameraPos, up)));
-	if((gl_GlobalInvocationID.x % distanceN) < (distanceN * (1.0 - dproj / dMax))){
+	if((gl_GlobalInvocationID.x % distanceN) > (distanceN * (1.0 - dproj / dMax))){
 		return;
 	}
+#endif
 	
 
 	culledBlades[atomicAdd(numBlades.vertexCount, 1)] = blade;
