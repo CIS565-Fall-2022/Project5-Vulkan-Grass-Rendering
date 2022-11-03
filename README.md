@@ -42,6 +42,7 @@ There are three type of forces in this simulation: gravity, recovery forces and 
 No Forces                     |  Gravity      
 :----------------------------:|:----------------------------:
 ![](img/grass_no_force.gif)   |  ![](img/grass_gravity.gif) 
+
 Gravity + Recovery            |  Gravity + Recovery + Wind
 :----------------------------:|:----------------------------:
 ![](img/grass_recovery.gif)   |  ![](img/grass_wind.gif) 
