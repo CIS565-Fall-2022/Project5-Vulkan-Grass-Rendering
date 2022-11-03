@@ -2,6 +2,15 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 #define WORKGROUP_SIZE 32
+
+#define ORIENTATION_CULL 1
+#define FRUSTUM_CULL 0
+#define DISTANCE_CULL 0
+#define ORIENTATION_THRESHOLD 0.9
+#define FRUSTUM_THRESHOLD -0.1f
+#define MAX_DIST 30.0f
+#define BUCKETS 10
+
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
 layout(set = 0, binding = 0) uniform CameraBufferObject {
@@ -36,21 +45,123 @@ struct Blade {
 // 	  uint firstInstance; // = 0
 // } numBlades;
 
+layout(set = 2, binding = 0) buffer grassBladesBuffer {
+	Blade grassBlades[];
+};
+
+layout(set = 2, binding = 1) buffer CulledBladesBuffer {
+	Blade culledBlades[];
+};
+
+layout(set = 2, binding = 2) buffer NumBlades {
+	uint vertexCount;   // Write the number of blades remaining here
+	uint instanceCount; // = 1
+	uint firstVertex;   // = 0
+	uint firstInstance; // = 0
+} numBlades;
+
 bool inBounds(float value, float bounds) {
     return (value >= -bounds) && (value <= bounds);
+}
+
+vec3 windMovement(vec3 v0, float time) { 
+	float period = 0.6;
+	float magnitude = 4.0;
+	float windvar = 0.4; 
+	return vec3(magnitude * (sin(period * (windvar * v0.x + time))), 0.0,
+				(1 + cos(period * (v0.z + time))));
+}
+
+bool inFrustum(vec3 p) {
+    vec4 pp = camera.proj * camera.view * vec4(p, 1.0);
+    float h = pp.w + FRUSTUM_THRESHOLD;
+    return inBounds(pp.x, h) && inBounds(pp.y, h);
 }
 
 void main() {
 	// Reset the number of blades to 0
 	if (gl_GlobalInvocationID.x == 0) {
-		// numBlades.vertexCount = 0;
+		 numBlades.vertexCount = 0;
 	}
 	barrier(); // Wait till all threads reach this point
 
     // TODO: Apply forces on every blade and update the vertices in the buffer
 
+	vec3 v0 = grassBlades[gl_GlobalInvocationID.x].v0.xyz;
+    vec3 v1 = grassBlades[gl_GlobalInvocationID.x].v1.xyz;
+    vec3 v2 = grassBlades[gl_GlobalInvocationID.x].v2.xyz;
+	vec3 up = grassBlades[gl_GlobalInvocationID.x].up.xyz;
+
+	float angle		= grassBlades[gl_GlobalInvocationID.x].v0.w;
+	float height	= grassBlades[gl_GlobalInvocationID.x].v1.w;
+    float width		= grassBlades[gl_GlobalInvocationID.x].v2.w;
+	float stiffness = grassBlades[gl_GlobalInvocationID.x].up.w;
+
+	// gravity
+	vec4 gravity = vec4(0, -1, 0, 9.81); // xyz dir, w magnitude
+	vec3 gE = normalize(gravity.xyz) * gravity.w; // Down gravity
+
+	vec3 orient = vec3(-cos(angle), 0, sin(angle));
+	vec3 front = normalize(cross(orient, up)); 
+	vec3 gF = 0.25 * length(gE) * front;
+
+	vec3 totalGravity = gF + gE;
+
+	// Recovery
+	vec3 recoveryForce = (v0 + height * up - v2) * stiffness; 
+
+	//Wind
+	vec3 wind = windMovement(v0, totalTime);
+	float directionAlignment = 1 - abs(dot(normalize(wind), normalize(v2 - v0)));
+	float straightnessRatio = dot(v2 - v0, up) / height;
+	float windAlignment = directionAlignment * straightnessRatio;
+	vec3 windForce = wind * windAlignment;
+
+	// Apply Force now
+	v2 += (totalGravity + recoveryForce + windForce) * deltaTime;
+
+	// state validation and updating inputBlade
+	v2 -= up * min(dot(up, v2 - v0), 0);
+
+	// Adjust v1 so the blade is not stretched
+	float lProj = length(v2 - v0 - up * dot(v2 - v0, up));
+	v1 = v0 + height * up * max(1 - lProj / height, 0.05 * max(lProj / height, 1.0));
+
+	float L1 = distance(v2, v0);
+	float L2 = distance(v1, v0) + distance(v2, v1);
+	float L = (2.0 * L1 + L2) / 3.0; // degree 2 Bezier 
+
+	float r = height / L;
+	v1 = v0 + r * (v1 - v0);
+	v2 = v1 + r * (v2 - v1);
+	grassBlades[gl_GlobalInvocationID.x].v1.xyz = v1;
+	grassBlades[gl_GlobalInvocationID.x].v2.xyz = v2;
+
+
 	// TODO: Cull blades that are too far away or not in the camera frustum and write them
 	// to the culled blades buffer
+	
+	vec3 camPos = inverse(camera.view)[3].xyz;
+	vec3 camToBlade = v0 - camPos;
+	vec3 viewDir = camToBlade - up * dot(camToBlade, up);
+#if ORIENTATION_CULL
+	if (abs(dot(normalize(viewDir), normalize(orient))) > ORIENTATION_THRESHOLD) {return;}
+#endif
+
+#if FRUSTUM_CULL
+	vec3 m = 0.25 * v0 + 0.5 * v1 + 0.25 * v2;
+	if(!inFrustum(v0) && !inFrustum(m) && !inFrustum(v2)){return;}
+#endif
+
+#if DISTANCE_CULL
+	float dproj = length(viewDir);
+    int n = int(floor(dproj/(MAX_DIST/BUCKETS)));
+
+	if(gl_GlobalInvocationID.x % BUCKETS >= BUCKETS*(1.0-dproj/MAX_DIST)) {return;}
+#endif
+
 	// Note: to do this, you will need to use an atomic operation to read and update numBlades.vertexCount
 	// You want to write the visible blades to the buffer without write conflicts between threads
+
+	culledBlades[atomicAdd(numBlades.vertexCount, 1)] = grassBlades[gl_GlobalInvocationID.x];
 }

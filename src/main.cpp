@@ -154,6 +154,8 @@ int main() {
     vkDestroyImage(device->GetVkDevice(), grassImage, nullptr);
     vkFreeMemory(device->GetVkDevice(), grassImageMemory, nullptr);
 
+    vkDestroySurfaceKHR(instance->GetVkInstance(), surface, nullptr);
+
     delete scene;
     delete plane;
     delete blades;
