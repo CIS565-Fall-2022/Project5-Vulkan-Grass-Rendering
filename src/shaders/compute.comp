@@ -21,6 +21,27 @@ struct Blade {
     vec4 up;
 };
 
+layout (set = 2, binding = 0) buffer AllBlades
+{
+    Blade allBlades[];
+};
+
+layout (set = 2, binding = 1) buffer CulledBlades
+{
+    Blade culledBlades[];
+};
+
+layout (set = 2, binding = 2) buffer NumBlades {
+ 	  uint vertexCount;   // Write the number of blades remaining here
+ 	  uint instanceCount; // = 1
+ 	  uint firstVertex;   // = 0
+ 	  uint firstInstance; // = 0
+ } numBlades;
+
+ //Gravity Vector
+vec4 D = vec4(0, -1, 0, 7.84);
+
+
 // TODO: Add bindings to:
 // 1. Store the input blades
 // 2. Write out the culled blades
@@ -34,21 +55,118 @@ struct Blade {
 // 	  uint instanceCount; // = 1
 // 	  uint firstVertex;   // = 0
 // 	  uint firstInstance; // = 0
-// } numBlades;
+// } numBlades; 
+
 
 bool inBounds(float value, float bounds) {
     return (value >= -bounds) && (value <= bounds);
 }
 
+vec2 random2(vec2 p )
+{
+    return fract(sin(vec2(dot(p,vec2(127.1, 311.7)),
+                dot(p, vec2(269.5,183.3))))
+                 * 43758.5453);
+}
+
+float surflet(vec2 p, vec2 gridPoint)
+{
+    // Compute the distance between p and the grid point along each axis, and warp it with a
+    // quintic function so we can smooth our cells
+    vec2 t2 = abs(p - gridPoint);
+    vec2 t = vec2(1.f) - 6.f * pow(t2, vec2(5.f)) + 15.f * pow(t2, vec2(4.f)) - 10.f * pow(t2, vec2(3.f));
+    // Get the random vector for the grid point 
+    // that returns a vec2 in the range [0, 1])
+    vec2 gradient = random2(gridPoint) * 2.0f -vec2(1,1);
+    // Get the vector from the grid point to P
+    vec2 diff = p - gridPoint;
+    // Get the value of our height field by dotting grid->P with our gradient
+    float height = dot(diff, gradient);
+    // Scale our height field (i.e. reduce it) by our polynomial falloff function
+    return height * t.x * t.y;
+}
+
+
+float perlinNoise(vec2 uv)
+{
+    float surfletSum = 0.f;
+    // Iterate over the four integer corners surrounding uv
+    for(int dx = 0; dx <= 1; ++dx) {
+        for(int dy = 0; dy <= 1; ++dy) {
+            surfletSum += surflet(uv, floor(uv) + vec2(dx, dy));
+        }
+    }
+    return surfletSum;
+}
+
+
+vec3 wind_influence(vec3 control_point, float t)
+{
+    vec3 result = sin(cos(control_point * 0.1 + 6 + t ) + 6)* 8;
+    
+    return vec3(result.x, 0, result.z);
+}
+
+
 void main() {
 	// Reset the number of blades to 0
 	if (gl_GlobalInvocationID.x == 0) {
-		// numBlades.vertexCount = 0;
+		numBlades.vertexCount = 0;
 	}
 	barrier(); // Wait till all threads reach this point
+    Blade cur_blade = allBlades[gl_GlobalInvocationID.x];
+    //Unpack this
+    vec3 v0 = cur_blade.v0.xyz;
+    vec3 v1 = cur_blade.v1.xyz;
+    vec3 v2 = cur_blade.v2.xyz;
+    vec3 up = cur_blade.up.xyz;
+    float theta = cur_blade.v0.w;
+    float height = cur_blade.v1.w;
+    float width = cur_blade.v2.w;
+    float stiffness = cur_blade.up.w;
 
     // TODO: Apply forces on every blade and update the vertices in the buffer
 
+    //WIND
+    vec3 wi = wind_influence(cur_blade.v0.xyz, totalTime);
+    float fd = 1 - abs(dot(wi/length(wi),(cur_blade.v2.xyz - cur_blade.v0.xyz)/length(cur_blade.v2.xyz - cur_blade.v0.xyz)));
+    float fr =  dot(cur_blade.v2.xyz - cur_blade.v0.xyz, cur_blade.up.xyz)/cur_blade.v1.w;
+    float alignment_factor = fd*fr;
+    vec3 wind = wi * alignment_factor;
+
+    //GRAVITY
+    
+    vec3 ge = normalize(D.xyz)*D.w;
+    vec3 f = normalize(cross(vec3(cos(cur_blade.v0.w), 0.0f , sin(cur_blade.v0.w)), cur_blade.up.xyz));
+    vec3 gf = 0.25 * length(ge) * f;
+    vec3 g = ge + gf;
+
+    //RECOVERY
+    //Iv2 given by bladePosition + bladeUp * height
+    vec3 i_v2 = v0 + up * height;
+    vec3 r_force = (i_v2 - v2) * stiffness;
+
+    vec3 tf = (g + wind + r_force) * deltaTime;
+    v2 += tf;
+    //Corrections
+    
+    v2 = v2 - up * min( dot(up, v2 - v0), 0.0f);
+    float l_proj = length(v2 - v0 -  up * dot((v2 - v0), up));
+    v1 = v0 + height * up * max(1 - l_proj/height, 0.05 * max(l_proj/height, 1.0f));
+    float l_0 = distance(v0, v2);
+    float l_1 = distance(v0, v1) +  distance(v1, v2);
+    float l =( 2 * l_0 + (2 - 1) * l_1) / ( 2 + 1);
+    float r_cor = height / l;
+    vec3 v1_corr = v0 +  r_cor * (v1 - v0);
+    
+    cur_blade.v2.xyz = v1_corr +  r_cor * (v2 - v1);
+    cur_blade.v1.xyz = v1_corr;
+
+    
+    uint vcount =  atomicAdd(numBlades.vertexCount, 1);
+
+    allBlades[gl_GlobalInvocationID.x] = cur_blade;
+    culledBlades[vcount] = cur_blade;
 	// TODO: Cull blades that are too far away or not in the camera frustum and write them
 	// to the culled blades buffer
 	// Note: to do this, you will need to use an atomic operation to read and update numBlades.vertexCount
