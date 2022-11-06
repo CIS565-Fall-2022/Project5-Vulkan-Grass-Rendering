@@ -34,10 +34,10 @@ Number of grass blades and culling techniques were analyzed.
    
 | 256 Blades | 16384 Blades | 1048576 Blades |
 | ---------- | ------------ | -------------- |  
-|[](img/8.gif)            |[](img/13.gif)                |  [](img/20.gif)               |    
+|![](img/8.gif)            |![](img/13.gif)                |  ![](img/20.gif)               |    
 
-[](img/num_blades.png)    
+![](img/num_blades.png)    
 Extremely high FPS were achieved until around ~260000 blades were simulated at which point the performance drastically decreased.    
-[](img/Culling.png)  
+![](img/Culling.png)  
 Distance culling had the most impact on performance which was surprising as I suspected orientation culling may be the most beneficial. Its likely that distance culling is less noticeable and most beneficial as it slightly decreases the number of blades at distances based on bins.  
  
