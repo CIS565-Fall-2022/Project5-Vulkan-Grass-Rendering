@@ -2,7 +2,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 #define WORKGROUP_SIZE 32
-#define TOLERANCE 0.80
+#define TOLERANCE 1
 #define N 10
 #define D_MAX 21.0
 
@@ -203,26 +203,25 @@ void main() {
     {
         vec3 m = 0.25 * v0 + 0.5 * v1 + 0.25 * v2;
         //v0
-        float tolerance = 0.80;
         vec4 p = camera.proj * camera.view * vec4(v0,1);
-        float h = p.w * tolerance;
-        bool v = inBounds(p.x, h) || inBounds(p.y, h) || inBounds(p.z, h);
+        float h = p.w * TOLERANCE;
+        bool v = inBounds(p.x, h) && inBounds(p.y, h) && inBounds(p.z, h);
         //v2
         if (!v)
         {
             return;
         }
         p = camera.proj * camera.view * vec4(v2,1);
-        h = p.w * tolerance;
-        v = inBounds(p.x, h) || inBounds(p.y, h) || inBounds(p.z, h);
+        h = p.w * TOLERANCE;
+        v = inBounds(p.x, h) && inBounds(p.y, h) && inBounds(p.z, h);
         if (!v)
         {
             return;
         }
         //Midpoint
         p = camera.proj * camera.view * vec4(m,1);
-        h = p.w * tolerance;
-        v = inBounds(p.x, h) || inBounds(p.y, h) || inBounds(p.z, h);
+        h = p.w * TOLERANCE;
+        v = inBounds(p.x, h) && inBounds(p.y, h) && inBounds(p.z, h);
         if (!v)
         {
             return;
