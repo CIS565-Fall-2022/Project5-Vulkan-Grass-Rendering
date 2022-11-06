@@ -30,10 +30,12 @@ Distance Culling:
 
 
 ### Analysis
-Number of grass blades and culling techniques were analyzed.
+Number of grass blades and culling techniques were analyzed. 
+   
 | 256 Blades | 16384 Blades | 1048576 Blades |
-| ---------- | ------------ | -------------- |
-|[](img/8.gif)            |[](img/13.gif)                |  (img/20.gif)               |  
+| ---------- | ------------ | -------------- |  
+|[](img/8.gif)            |[](img/13.gif)                |  [](img/20.gif)               |    
+
 [](img/num_blades.png)    
 Extremely high FPS were achieved until around ~260000 blades were simulated at which point the performance drastically decreased.    
 [](img/Culling.png)  
