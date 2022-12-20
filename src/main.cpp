@@ -147,6 +147,8 @@ int main() {
 
     int count = 0;
     double timeFor1000Frames = 0.0;
+    double FPS;
+    int count2 = 0;
     while (!ShouldQuit()) {
         glfwPollEvents();
         scene->UpdateTime();
@@ -156,9 +158,14 @@ int main() {
         timeFor1000Frames += (time2 - time1);
         ++count;
         if (count == 1000) {
-            std::cout << 1000.0 / timeFor1000Frames << std::endl;
+            FPS += (1000.0 / timeFor1000Frames);
             timeFor1000Frames = 0.0;
             count = 0;
+            ++count2;
+        }
+        if (count2 == 5) {
+            std::cout << FPS / 10.0 << std::endl;
+            count2 = 6;
         }
     }
 

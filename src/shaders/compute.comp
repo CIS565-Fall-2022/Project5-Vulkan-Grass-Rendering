@@ -5,7 +5,7 @@
 #define APPLY_FORCE 1
 #define ORIENTATION_CULL 0
 #define VIEWFRUSTUM_CULL 0
-#define DISTANCE_CULL 0
+#define DISTANCE_CULL 1
 
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
@@ -131,9 +131,9 @@ void main() {
 
     //parameter to define
     float orientationTolerance = 0.6;
-    float tolerance = 0.001;   //tolerance parameter for view-frustum culling
+    float tolerance = 0.0001;   //tolerance parameter for view-frustum culling
     int n = 10;    //distance culling number of buskets
-    float dmax = 20;  //distance culling max distance
+    float dmax = 40;  //distance culling max distance
 
 #if ORIENTATION_CULL
     //orientation culling
@@ -148,11 +148,22 @@ void main() {
     //view-frustum culling
     vec3 m = 0.25 * v0 + 0.5 * v1 + 0.25 * v2;
     mat4 viewPro = camera.proj * camera.view;
-    vec4 p_prime = viewPro * vec4(m, 1);
-    float h = abs(p_prime.w) + tolerance;
-    if(!((inBounds(p_prime.x, h) && inBounds(p_prime.y, h)) && inBounds(p_prime.z, h))){
-        return; 
+    vec4 m_prime = viewPro * vec4(m, 1);
+    vec4 v0_prime = viewPro * vec4(v0, 1);
+    vec4 v2_prime = viewPro * vec4(v2, 1);
+    float h = abs(m_prime.w) + tolerance;
+    if(!(inBounds(m_prime.x, h) && inBounds(m_prime.y, h) && inBounds(m_prime.z, h))){
+        return;
     }
+    h = abs(v0_prime.w) + tolerance;
+    if(!(inBounds(v0_prime.x, h) && inBounds(v0_prime.y, h) && inBounds(v0_prime.z, h))){
+        return;
+    }
+    h = abs(v2_prime.w) + tolerance;
+    if(!(inBounds(v2_prime.x, h) && inBounds(v2_prime.y, h) && inBounds(v2_prime.z, h))){
+        return;
+    }
+    
 #endif
 #if DISTANCE_CULL
     //distance culling

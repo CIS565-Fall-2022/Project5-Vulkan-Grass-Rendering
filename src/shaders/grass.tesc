@@ -33,10 +33,10 @@ void main() {
 	// TODO: Set level of tesselation
     //determine the tesselation level for each blade
     //a tesselation value of 1, will simply make all blade just pure triangle.
-    gl_TessLevelInner[0] = 16;
-    gl_TessLevelInner[1] = 16;
-    gl_TessLevelOuter[0] = 16;
-    gl_TessLevelOuter[1] = 16;
-    gl_TessLevelOuter[2] = 16;
-    gl_TessLevelOuter[3] = 16;
+    gl_TessLevelInner[0] = 8;
+    gl_TessLevelInner[1] = 8;
+    gl_TessLevelOuter[0] = 8;
+    gl_TessLevelOuter[1] = 8;
+    gl_TessLevelOuter[2] = 8;
+    gl_TessLevelOuter[3] = 8;
 }
