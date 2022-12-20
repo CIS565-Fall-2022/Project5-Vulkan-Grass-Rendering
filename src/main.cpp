@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Scene.h"
 #include "Image.h"
+#include <iostream>
 
 Device* device;
 SwapChain* swapChain;
@@ -67,7 +68,8 @@ namespace {
 
 int main() {
     static constexpr char* applicationName = "Vulkan Grass Rendering";
-    InitializeWindow(640, 480, applicationName);
+    //640, 480
+    InitializeWindow(1600, 1200, applicationName);
 
     unsigned int glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -143,10 +145,21 @@ int main() {
     glfwSetMouseButtonCallback(GetGLFWWindow(), mouseDownCallback);
     glfwSetCursorPosCallback(GetGLFWWindow(), mouseMoveCallback);
 
+    int count = 0;
+    double timeFor1000Frames = 0.0;
     while (!ShouldQuit()) {
         glfwPollEvents();
         scene->UpdateTime();
+        double time1 = glfwGetTime(); // returns time in seconds
         renderer->Frame();
+        double time2 = glfwGetTime();
+        timeFor1000Frames += (time2 - time1);
+        ++count;
+        if (count == 1000) {
+            std::cout << 1000.0 / timeFor1000Frames << std::endl;
+            timeFor1000Frames = 0.0;
+            count = 0;
+        }
     }
 
     vkDeviceWaitIdle(device->GetVkDevice());
