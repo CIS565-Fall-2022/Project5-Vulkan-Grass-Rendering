@@ -56,12 +56,87 @@ void main() {
 
     // TODO: Apply forces on every blade and update the vertices in the buffer
 
+    vec4 v0 = blades[gl_GlobalInvocationID.x].v0;
+    vec4 v1 = blades[gl_GlobalInvocationID.x].v1;
+    vec4 v2 = blades[gl_GlobalInvocationID.x].v2;
+    vec4 up = blades[gl_GlobalInvocationID.x].up;
+
+    float angle = v0.w;
+    float height = v1.w;
+    float width = v2.w;
+    float stiffness = up.w;
+
+    vec3 bitangent = vec3(-cos(angle), 0, sin(angle));
+
+    float acc = 10.0;
+    vec3 f = cross(bitangent, up.xyz);
+    vec4 gE = vec4(0.0, -1.0, 0.0, acc);
+    vec3 gF = 0.25 * length(gE.xyz) * f;
+
+    vec3 g = gF + gE.xyz * gE.w;
+
+    vec3 r = ((v0.xyz + height * up.xyz) - v2.xyz) * stiffness;
+
+    float turbulence = 2.0 * sin(v2.y * cos(v2.z));
+    vec3 windDirection = turbulence * vec3(sin(v2.x), height - v1.y, cos(v2.z));
+    float fd = 1.0 - abs(dot(normalize(windDirection), normalize(v2.xyz - v0.xyz)));
+    float fr = dot((v2.xyz - v0.xyz), up.xyz) / height;
+    float windAlignment = fd * fr;
+
+    vec3 w = windAlignment * windDirection;
+
+    vec3 tv2 = (g + r + w) * deltaTime;
+
+    vec3 v2Final = v2.xyz + tv2;
+    v2Final = v2Final - up.xyz * min(dot(up.xyz, v2.xyz - v0.xyz), 0);
+
+    float lProj = length(v2Final - v0.xyz - up.xyz  * dot(v2Final - v0.xyz, up.xyz));
+
+    vec3 v1Final = v0.xyz + height * up.xyz * max(1.0 - (lProj / height), 0.05 * max(lProj / height, 1));
+
+    float l0 = length(v2Final - v0.xyz);
+    float l1 = length(v1Final - v0.xyz) + length(v2Final - v1Final);
+    float l = (2 * l0 + 2 * l1) / 4;
+
+    float ratio = height / l;
+
+    vec3 v1Corr = v0.xyz + ratio * (v1Final - v0.xyz);
+    vec3 v2Corr = v1Corr + ratio * (v2Final - v1Final);
+
+    blades[gl_GlobalInvocationID.x].v1 = vec4(v1Corr, v1.w);
+    blades[gl_GlobalInvocationID.x].v2 = vec4(v2Corr, v2.w);
+
 	// TODO: Cull blades that are too far away or not in the camera frustum and write them
 	// to the culled blades buffer
 	// Note: to do this, you will need to use an atomic operation to read and update numBlades.vertexCount
 	// You want to write the visible blades to the buffer without write conflicts between threads
 
-    culled[gl_GlobalInvocationID.x] = blades[gl_GlobalInvocationID.x];
+    vec3 cameraPos = inverse(camera.view)[3].xyz;
+    vec3 bladeMidpoint = 0.25 * blades[gl_GlobalInvocationID.x].v0.xyz + 0.5 * blades[gl_GlobalInvocationID.x].v1.xyz + 
+        0.25 * blades[gl_GlobalInvocationID.x].v2.xyz;
 
-    atomicAdd(numBlades.vertexCount, 1);
+    vec3 dirC= normalize(bladeMidpoint - cameraPos);
+
+    if (abs(dot(dirC, normalize(bitangent))) > 0.9) {
+        return;
+    }
+
+    vec4 pPrime = camera.proj * camera.view * vec4(bladeMidpoint, 1.0);
+    float tolerance  = 0.1;
+    float h = pPrime.w + tolerance;
+
+    if (!inBounds(pPrime.x, h) && !inBounds(pPrime.y, h) && !inBounds(pPrime.z, h)) {
+        return;
+    }
+
+    float dProj = length(v0.xyz - cameraPos - up.xyz * dot(v0.xyz - cameraPos, up.xyz));
+
+    int n = 10;
+    float dMax = 40;
+
+    if (mod(gl_GlobalInvocationID.x, n) < floor(n * (1 - (dProj / dMax)))) {
+        return;
+    }
+
+    culled[atomicAdd(numBlades.vertexCount, 1)] = blades[gl_GlobalInvocationID.x];
 }

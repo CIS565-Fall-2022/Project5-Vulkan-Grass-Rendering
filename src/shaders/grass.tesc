@@ -32,7 +32,7 @@ void main() {
     out_v2[gl_InvocationID] = in_v2[gl_InvocationID];
     out_up[gl_InvocationID] = in_up[gl_InvocationID];
 
-    float tesselation = 4.0;
+    float tesselation = 6.0;
 
 
 	// TODO: Set level of tesselation
