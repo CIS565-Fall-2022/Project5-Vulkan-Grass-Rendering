@@ -9,6 +9,10 @@ Vulkan Grass Rendering
 
 ## Overview
 
+A quadratic Bézier curve is a parametric curve used in computer graphics and related fields to model smooth curves. Using quadratic Bézier curves to model grass allows for both aesthetic realism and computational efficiency. This method can create a wide variety of grass shapes and appearances by simply adjusting the positions of the control points. It's particularly effective in real-time rendering applications, like video games or simulations, where performance is critical, but a reasonable level of realism is also required.
+
+In this project, I simulate the grass using quadratic Bézier curves based on the method introduced in this paper: [Responsive Real-Time Grass Rendering for General 3D Scenes](https://www.cg.tuwien.ac.at/research/publications/2017/JAHRMANN-2017-RRTG/JAHRMANN-2017-RRTG-draft.pdf).
+
 ![](/img/blade_model.jpg)
 The blade of grass is represented using a quadratic Bézier curve defined by three control points and some essential attributes: 
 
@@ -45,3 +49,12 @@ It is clear that when no force is applied, all blades of grass sts the same. Whe
 ### Culling
 
 To improve performance, different culling methods are used to discard blades that are not or less visible.
+
+| No Culling  | Orientation Culling |
+|---|---|
+|![](img/no_culling.gif)|![](img/orient_culling.gif)|
+
+
+| Frustrum Culling | Distance Culling |
+|---|---|
+|![](img/recovery.png)|![](img/wind.gif)|
