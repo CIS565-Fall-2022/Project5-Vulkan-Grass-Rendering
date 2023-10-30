@@ -4,7 +4,12 @@
 #define WORKGROUP_SIZE 32
 #define GRAVITY_ACC 9.8
 #define BEZIER_DEG 3
-#define CULL_ORIENTATION 0
+#define CULL_ORIENTATION
+#define CULL_FRUSTRUM
+#define FRUSTRUM_LIMIT 0.1f
+#define CULL_DIST
+#define MAX_DIST 20.f
+#define DIST_LEVELS 10
 
 layout(local_size_x = WORKGROUP_SIZE, local_size_y = 1, local_size_z = 1) in;
 
@@ -68,11 +73,19 @@ vec3 genWind(float time, vec3 v0) {
     return vec3(xWind, 0.0, zWind);
 }
 
+bool checkInFrustrum(vec3 p) {
+	vec4 projected_p = camera.proj * camera.view * vec4(p, 1.0f);
+	float threshold = projected_p.w + FRUSTRUM_LIMIT;
+	return inBounds(projected_p.x, threshold) &&
+		inBounds(projected_p.y, threshold) &&
+		inBounds(projected_p.z, threshold);
+}
+
 void main() {
 	// Reset the number of blades to 0
 	uint index = gl_GlobalInvocationID.x;
 	if (index == 0) {
-		// numBlades.vertexCount = 0;
+		numBlades.vertexCount = 0;
 	}
 	barrier(); // Wait till all threads reach this point
 
@@ -136,5 +149,35 @@ void main() {
 	// Note: to do this, you will need to use an atomic operation to read and update numBlades.vertexCount
 	// You want to write the visible blades to the buffer without write conflicts between threads
 
-	bladesCulled[index] = blades[index];
+	// CULLING
+
+	vec3 cam = inverse(camera.view)[3].xyz;
+#ifdef CULL_ORIENTATION
+	// orientation culling
+	vec3 dir_b = v0 - cam;
+	vec3 dir_c = width_dir;
+	if (abs(dot(dir_b, dir_c)) < 0.9) {
+		return;
+	}
+#endif
+
+#ifdef CULL_FRUSTRUM
+	// frustrum culling
+	vec3 midpoint = 0.25f * v0 + 0.5f * v1 + 0.25f * v2;
+    mat4 vp = camera.proj * camera.view;
+	if(!checkInFrustrum(v0) && !checkInFrustrum(midpoint) && !checkInFrustrum(v2)) {
+		return;
+	}
+#endif
+
+#ifdef CULL_DIST
+	// distance culling
+	float d_proj = length(v0 - cam - up * dot(v0 - cam, up));
+	if (index % DIST_LEVELS >= DIST_LEVELS * (1 - d_proj / MAX_DIST)) {
+		return;
+	}
+#endif
+
+	uint remaining_blade_cnt = atomicAdd(numBlades.vertexCount, 1);
+	bladesCulled[remaining_blade_cnt] = blades[index];
 }
