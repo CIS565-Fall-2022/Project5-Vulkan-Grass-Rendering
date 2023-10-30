@@ -57,4 +57,7 @@ To improve performance, different culling methods are used to discard blades tha
 
 | Frustrum Culling | Distance Culling |
 |---|---|
-|![](img/recovery.png)|![](img/wind.gif)|
+|![](img/frustrum_culling.gif)|![](img/dist_culling.gif)|
+
+With orientation culling we can see that some blades which are alighed with the viewing direction is omitted. With frustrum culling, If all $v_0$, $v_2$, and $m$ are not in the frustrum, the blade will be omitted. With distance culling, blades that are too far away will be omitted.
+ 

@@ -156,7 +156,7 @@ void main() {
 	// orientation culling
 	vec3 dir_b = v0 - cam;
 	vec3 dir_c = width_dir;
-	if (abs(dot(dir_b, dir_c)) < 0.9) {
+	if (abs(dot(normalize(dir_b), normalize(dir_c))) > 0.6) {
 		return;
 	}
 #endif
