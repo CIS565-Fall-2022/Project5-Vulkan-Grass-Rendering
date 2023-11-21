@@ -13,7 +13,7 @@ Tested on: Windows 10, i7-10750H @ 2.60GHz, 16GB, GTX 3060 6GB
 
 ## Features
 
-![](./img/my_grass.gif)
+![](https://github.com/IwakuraRein/CIS-565-5-Vulkan-Grass-Rendering/blob/main/img/my_grass.gif)
 
 Rendering a large amount of grass that is subject to physical law at real-time speed. Reference: [Responsive Real-Time Grass Rendering for General 3D Scenes](https://www.cg.tuwien.ac.at/research/publications/2017/JAHRMANN-2017-RRTG/JAHRMANN-2017-RRTG-draft.pdf)
 
@@ -21,7 +21,7 @@ Rendering a large amount of grass that is subject to physical law at real-time s
 
 A blade can be represented as a Bezier curve with three points and two directions:
 
-![](./img/blade_model.jpg)
+![](https://github.com/IwakuraRein/CIS-565-5-Vulkan-Grass-Rendering/blob/main/img/blade_model.jpg)
 
 V0, V1, and V2 are the Bezier control points. The direction and up-vector, together with V0 can define the blade's world space position and orientation.
 
@@ -37,16 +37,16 @@ By editing the vector `Wi` inside the compute shader we can define various wind 
         <th>$Wi = \sin(v_{0x}+\mathrm{time}) \cdot \sin(v_{0z}+\mathrm{time}) \cdot 15$</th>
     </tr>
     <tr>
-        <th><img src="./img/no_wind.png"/></th>
-        <th><img src="./img/wind1.gif"></th>
+        <th><img src="https://github.com/IwakuraRein/CIS-565-5-Vulkan-Grass-Rendering/blob/main/img/no_wind.png"/></th>
+        <th><img src="https://github.com/IwakuraRein/CIS-565-5-Vulkan-Grass-Rendering/blob/main/img/wind1.gif"></th>
     </tr>
     <tr>
         <th>$Wi = \sin(v_{0x}^2 + v_{0z}^2+\mathrm{time}) \cdot 15$</th>
         <th>$Wi = \sin(v_{0x} + v_{0z}+\mathrm{time}) \cdot 15$</th>
     </tr>
     <tr>
-        <th><img src="./img/wind2.gif"></th>
-        <th><img src="./img/wind3.gif"></th>
+        <th><img src="https://github.com/IwakuraRein/CIS-565-5-Vulkan-Grass-Rendering/blob/main/img/wind2.gif"></th>
+        <th><img src="https://github.com/IwakuraRein/CIS-565-5-Vulkan-Grass-Rendering/blob/main/img/wind3.gif"></th>
     </tr>
 </table>
 
@@ -67,7 +67,7 @@ Click each embedded video to see how FPS varies as the camera moves around. Afte
     </tr>
 </table>
 
-![](./img/Analysis.png)
+![](https://github.com/IwakuraRein/CIS-565-5-Vulkan-Grass-Rendering/blob/main/img/Analysis.png)
 
 ### Frustum Culling
 
